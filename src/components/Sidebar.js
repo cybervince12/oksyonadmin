@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faGavel, faUsers, faEnvelope, faFileAlt, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
-
 const Sidebar = () => {
   return (
-    <aside className="bg-green-500 text-white h-screen w-64 p-6">
+    <aside className="bg-gradient-to-b from-[#257446] to-[#234D35] text-white h-screen w-64 p-6">
       <h2 className="text-lg font-bold mb-6">ADMIN</h2>
       <ul className="space-y-4">
         <li>

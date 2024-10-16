@@ -15,7 +15,7 @@ const Login = () => {
   return (
     <div className="flex h-screen">
       {/* Left Section with Image and Text */}
-      <div className="w-1/2 bg-green-700 p-12 flex flex-col justify-center items-center text-white">
+      <div className="w-1/2 bg-gradient-to-b from-[#257446] to-[#234D35] p-12 flex flex-col justify-center items-center text-white">
         <img
           src={`${process.env.PUBLIC_URL}/images/cattle.png`} // Update the path as per the actual location
           alt="Cattle illustration"
