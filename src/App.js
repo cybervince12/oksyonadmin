@@ -7,6 +7,7 @@ import Users from './components/Users';
 import Auction from './components/Auction';
 import TransactionReports from './components/TransactionReports';
 import Login from './components/Login'; 
+import Inbox from './components/Inbox';
 import './index.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="users" element={<Users />} />
           <Route path="auction" element={<Auction />} />
+          <Route path="Inbox" element={<Inbox />} />
           <Route path="transaction-reports" element={<TransactionReports />} />
         </Route>
 
