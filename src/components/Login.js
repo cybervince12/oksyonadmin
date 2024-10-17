@@ -8,8 +8,7 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Add authentication logic here
-    navigate('/admin/dashboard'); // Redirect to the dashboard after login
+    navigate('/admin/dashboard'); 
   };
 
   return (
@@ -17,7 +16,7 @@ const Login = () => {
       {/* Left Section with Image and Text */}
       <div className="w-1/2 bg-gradient-to-b from-[#257446] to-[#234D35] p-12 flex flex-col justify-center items-center text-white">
         <img
-          src={`${process.env.PUBLIC_URL}/images/cattle.png`} // Update the path as per the actual location
+          src={`${process.env.PUBLIC_URL}/images/cattle.png`} 
           alt="Cattle illustration"
           className="mb-8 w-3/4 h-auto"
         />

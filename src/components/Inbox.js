@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import TopHeader from './TopHeader'; // Import TopHeader component
 
 const Inbox = ({ emails = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,10 +12,8 @@ const Inbox = ({ emails = [] }) => {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Inbox Header */}
-      <div className="p-6 bg-gradient-to-b from-[#257446] to-[#234D35] text-white">
-        <h1 className="text-2xl font-bold">Inbox</h1>
-      </div>
+      {/* Apply Top Header */}
+      <TopHeader title="Inbox" /> {/* Pass "Inbox" as the title */}
 
       {/* Search Bar */}
       <div className="p-6">

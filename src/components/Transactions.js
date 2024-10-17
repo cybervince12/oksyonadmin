@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import TopHeader from './TopHeader'; 
 
 const Transactions = () => {
   const [activeTab, setActiveTab] = useState('pending');
@@ -29,45 +30,50 @@ const Transactions = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-100 h-screen">
-      <h1 className="text-3xl font-bold mb-6">Transaction</h1>
+    <div className="h-screen flex flex-col">
+      {/* Apply Top Header */}
+      <TopHeader title="Transactions" />
 
-      {/* Tab Navigation */}
-      <div className="border-b mb-4">
-        <button
-          onClick={() => setActiveTab('pending')}
-          className={`px-4 py-2 ${activeTab === 'pending' ? 'border-b-2 border-green-500 font-bold' : ''}`}
-        >
-          Pending Transaction
-        </button>
-        <button
-          onClick={() => setActiveTab('ongoing')}
-          className={`px-4 py-2 ${activeTab === 'ongoing' ? 'border-b-2 border-green-500 font-bold' : ''}`}
-        >
-          Ongoing Transaction
-        </button>
-        <button
-          onClick={() => setActiveTab('finished')}
-          className={`px-4 py-2 ${activeTab === 'finished' ? 'border-b-2 border-green-500 font-bold' : ''}`}
-        >
-          Finish Transaction
-        </button>
-      </div>
+      {/* Main Content */}
+      <div className="p-6 bg-gray-100 flex-grow">
+    
+        {/* Tab Navigation */}
+        <div className="border-b mb-4">
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={`px-4 py-2 ${activeTab === 'pending' ? 'border-b-2 border-green-500 font-bold' : ''}`}
+          >
+            Pending Transaction
+          </button>
+          <button
+            onClick={() => setActiveTab('ongoing')}
+            className={`px-4 py-2 ${activeTab === 'ongoing' ? 'border-b-2 border-green-500 font-bold' : ''}`}
+          >
+            Ongoing Transaction
+          </button>
+          <button
+            onClick={() => setActiveTab('finished')}
+            className={`px-4 py-2 ${activeTab === 'finished' ? 'border-b-2 border-green-500 font-bold' : ''}`}
+          >
+            Finish Transaction
+          </button>
+        </div>
 
-      {/* Transaction Table */}
-      <div className="bg-white shadow-md rounded-lg p-4">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="text-left bg-gray-100">
-              <th className="p-2">Auction ID</th>
-              <th className="p-2">Title</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Actions</th>
-              <th className="p-2">Shipping Permit</th>
-            </tr>
-          </thead>
-          <tbody>{renderTransactions()}</tbody>
-        </table>
+        {/* Transaction Table */}
+        <div className="bg-white shadow-md rounded-lg p-4">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="text-left bg-gray-100">
+                <th className="p-2">Auction ID</th>
+                <th className="p-2">Title</th>
+                <th className="p-2">Status</th>
+                <th className="p-2">Actions</th>
+                <th className="p-2">Shipping Permit</th>
+              </tr>
+            </thead>
+            <tbody>{renderTransactions()}</tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

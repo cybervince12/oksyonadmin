@@ -1,11 +1,18 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faGavel, faUsers, faEnvelope, faFileAlt, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = () => {
+  const navigate = useNavigate(); // Use the useNavigate hook
+
+  const handleSignOut = () => {
+    // Add any sign-out logic here (e.g., clearing session, tokens, etc.)
+    navigate('/login'); // Navigate to the login page after sign out
+  };
+
   return (
-    <aside className="bg-gradient-to-b from-[#257446] to-[#234D35] text-white h-screen w-64 p-6">
+    <aside className="bg-gradient-to-b from-[#257446] to-[#234D35] text-white w-64 p-6">
       <h2 className="text-lg font-bold mb-6">ADMIN</h2>
       <ul className="space-y-4">
         <li>
@@ -45,10 +52,14 @@ const Sidebar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/sign-out" className="flex items-center space-x-2 py-2 hover:bg-green-700 rounded px-2">
+          {/* Button for sign out */}
+          <button
+            onClick={handleSignOut}
+            className="flex items-center space-x-2 py-2 hover:bg-green-700 rounded px-2 w-full text-left"
+          >
             <FontAwesomeIcon icon={faSignOutAlt} />
             <span>Sign Out</span>
-          </Link>
+          </button>
         </li>
       </ul>
     </aside>
