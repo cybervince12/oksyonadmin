@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -15,6 +15,14 @@ import TopHeader from './TopHeader';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [announcementText, setAnnouncementText] = useState('');
+  const [announcementDate, setAnnouncementDate] = useState('');
+  const [announcementTime, setAnnouncementTime] = useState('');
+  const [announcements, setAnnouncements] = useState([
+    { text: 'Upcoming auction - Monday' },
+  ]);
+
   const data = {
     labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Hogs'],
     datasets: [
@@ -33,6 +41,18 @@ const Dashboard = () => {
         beginAtZero: true,
       },
     },
+  };
+
+  const handleAddAnnouncement = () => {
+    setShowAnnouncementForm(true);
+  };
+
+  const handleSaveAnnouncement = () => {
+    setAnnouncements([...announcements, { text: announcementText, date: announcementDate, time: announcementTime }]);
+    setShowAnnouncementForm(false);
+    setAnnouncementText('');
+    setAnnouncementDate('');
+    setAnnouncementTime('');
   };
 
   return (
@@ -69,21 +89,86 @@ const Dashboard = () => {
             {/* Announcements */}
             <div className="bg-white shadow-md rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <h2 className="font-semibold text-lg text-green-800">Add New Announcement</h2>
-                <button className="bg-green-500 w-10 h-10 flex items-center justify-center rounded-lg text-white">
+                <h2 className="font-semibold text-lg text-green-800">Announcements</h2>
+                <button
+                  className="bg-green-500 w-10 h-10 flex items-center justify-center rounded-lg text-white"
+                  onClick={handleAddAnnouncement}
+                >
                   +
                 </button>
               </div>
               <div className="mt-4">
-                <h3 className="font-semibold">Announcements:</h3>
-                <p>Upcoming auction - Monday</p>
+                <h3 className="font-semibold">Current Announcements:</h3>
+                <ul>
+                  {announcements.map((announcement, index) => (
+                    <li key={index}>
+                      {announcement.text} - {announcement.date} at {announcement.time}
+                    </li>
+                  ))}
+                </ul>
               </div>
+
+              
             </div>
           </div>
+                    
+          {/* Show Add Announcement Form */}
+{showAnnouncementForm && (
+  <div className="bg-white shadow-md rounded-lg p-4">
+    <h2 className="font-semibold text-lg text-green-800">Add New Announcement</h2>
+    <div className="mb-4">
+      <label className="block text-gray-700 mb-2">Date:</label>
+      <input
+        type="date"
+        className="w-full p-2 border border-gray-300 rounded-lg"
+        value={announcementDate}
+        onChange={(e) => setAnnouncementDate(e.target.value)}
+      />
+    </div>
+    <div className="mb-4">
+      <label className="block text-gray-700 mb-2">Time:</label>
+      <input
+        type="time"
+        className="w-full p-2 border border-gray-300 rounded-lg"
+        value={announcementTime}
+        onChange={(e) => setAnnouncementTime(e.target.value)}
+      />
+    </div>
+    <textarea
+      className="w-full p-2 mt-2 border border-gray-300 rounded-lg"
+      rows="4"
+      placeholder="Write your announcement here..."
+      value={announcementText}
+      onChange={(e) => setAnnouncementText(e.target.value)}
+    />
+    <div className="flex justify-between items-center mt-4">
+      <button
+        className="bg-green-500 text-white px-4 py-2 rounded-lg"
+        onClick={handleSaveAnnouncement}
+      >
+        Save Announcement
+      </button>
+
+      {/* Add the buttons inline */}
+      <div className="flex space-x-2">
+        <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
+          send to bidders account
+        </button>
+        <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
+          send to sellers account
+        </button>
+        <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
+          send to bidder/sellers account
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
           {/* Bar Chart */}
-          <div className="bg-white shadow-md rounded-lg p-4">
-            <h2 className="font-semibold text-lg mb-4">Weekly Dashboard - Livestock Sold</h2>
+          <div className="bg-white shadow-md rounded-lg p-4 mt-6">
+            <h2 className="text-2xl font-bold">Weekly Dashboard - Livestock Sold</h2>
             <p className="text-gray-500">14/04/2024 - 20/04/2024</p>
             <Bar data={data} options={options} />
           </div>

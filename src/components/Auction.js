@@ -55,8 +55,9 @@ const Auction = () => {
 
       {/* Main Content */}
       <div className="p-6 bg-gray-100 flex-grow">
-        <div className="bg-white shadow-md rounded-lg p-4">
-          <table className="w-full table-auto border-collapse">
+        <div className="bg-white shadow-md rounded-lg p-4 relative">
+          
+          <table className="w-full table-auto border-collapse mt-10">
             <thead>
               <tr className="bg-green-800 text-white text-left">
                 <th className="p-3 border">Species</th>
@@ -100,10 +101,9 @@ const Auction = () => {
           </table>
         </div>
       </div>
-
-      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">
-        DONE
-      </button>
+      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">Edit</button>
+      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">Add</button>      
+      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">DONE</button>   
     </div>
   );
 };

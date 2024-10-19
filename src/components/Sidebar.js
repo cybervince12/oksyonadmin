@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faGavel, faUsers, faEnvelope, faFileAlt, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = () => {
-  const navigate = useNavigate(); // Use the useNavigate hook
+  const navigate = useNavigate(); 
 
   const handleSignOut = () => {
     // Add any sign-out logic here (e.g., clearing session, tokens, etc.)
