@@ -56,7 +56,6 @@ const Auction = () => {
       {/* Main Content */}
       <div className="p-6 bg-gray-100 flex-grow">
         <div className="bg-white shadow-md rounded-lg p-4 relative">
-          
           <table className="w-full table-auto border-collapse mt-10">
             <thead>
               <tr className="bg-green-800 text-white text-left">

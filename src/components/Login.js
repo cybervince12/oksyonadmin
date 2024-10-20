@@ -13,7 +13,6 @@ const Login = () => {
 
   return (
     <div className="flex h-screen">
-      {/* Left Section with Image and Text */}
       <div className="w-1/2 bg-gradient-to-b from-[#257446] to-[#234D35] p-12 flex flex-col justify-center items-center text-white">
         <img
           src={`${process.env.PUBLIC_URL}/images/cattle.png`} 
@@ -70,32 +69,6 @@ const Login = () => {
             </button>
           </div>
         </form>
-        <div className="mt-12 text-sm text-gray-700">
-          Create account with
-          <div className="flex mt-4">
-            <button className="ml-2 mr-4 focus:outline-none">
-              <img
-                src={`${process.env.PUBLIC_URL}/images/facebook-icon.png`}
-                alt="Facebook"
-                className="w-8 h-8"
-              />
-            </button>
-            <button className="mr-4 focus:outline-none">
-              <img
-                src={`${process.env.PUBLIC_URL}/images/apple-icon.png`}
-                alt="Apple"
-                className="w-8 h-8"
-              />
-            </button>
-            <button className="focus:outline-none">
-              <img
-                src={`${process.env.PUBLIC_URL}/images/google-icon.png`}
-                alt="Google"
-                className="w-8 h-8"
-              />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

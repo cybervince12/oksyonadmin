@@ -113,9 +113,17 @@ const Dashboard = () => {
           </div>
                     
           {/* Show Add Announcement Form */}
-{showAnnouncementForm && (
+          {showAnnouncementForm && (
   <div className="bg-white shadow-md rounded-lg p-4">
-    <h2 className="font-semibold text-lg text-green-800">Add New Announcement</h2>
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="font-semibold text-lg text-green-800">Add New Announcement</h2>
+      <button
+        className="text-red-500 hover:text-red-700"
+        onClick={() => setShowAnnouncementForm(false)}
+      >
+        CLOSE
+      </button>
+    </div>
     <div className="mb-4">
       <label className="block text-gray-700 mb-2">Date:</label>
       <input
@@ -148,23 +156,20 @@ const Dashboard = () => {
       >
         Save Announcement
       </button>
-
-      {/* Add the buttons inline */}
       <div className="flex space-x-2">
         <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
-          send to bidders account
+          Send to Bidders Account
         </button>
         <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
-          send to sellers account
+          Send to Sellers Account
         </button>
         <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
-          send to bidder/sellers account
+          Send to Bidder/Sellers Account
         </button>
       </div>
     </div>
   </div>
 )}
-
 
           {/* Bar Chart */}
           <div className="bg-white shadow-md rounded-lg p-4 mt-6">
