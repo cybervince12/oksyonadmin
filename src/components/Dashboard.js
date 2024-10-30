@@ -35,6 +35,8 @@ const Dashboard = () => {
   };
 
   const options = {
+    responsive: true,
+    maintainAspectRatio: false,
     scales: {
       y: {
         beginAtZero: true,
@@ -199,6 +201,17 @@ const Dashboard = () => {
                 >
                   Save Announcement
                 </button>
+                <div className="flex space-x-2">
+                  <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
+                    Send to Bidders Account
+                  </button>
+                  <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
+                    Send to Sellers Account
+                  </button>
+                  <button className="bg-gradient-to-r from-green-400 to-green-600 text-white px-4 py-2 rounded-lg">
+                    Send to Bidder/Sellers Account
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -207,7 +220,9 @@ const Dashboard = () => {
           <div className="bg-white shadow-md rounded-lg p-4 mt-6">
             <h2 className="text-2xl font-bold">Weekly Dashboard - Livestock Sold</h2>
             <p className="text-gray-500">14/04/2024 - 20/04/2024</p>
-            <Bar data={data} options={options} />
+            <div className="h-96"> {/* Set height here */}
+              <Bar data={data} options={options} />
+            </div>
           </div>
         </div>
       </div>

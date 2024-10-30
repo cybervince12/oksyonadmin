@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TopHeader from './TopHeader';
 
 const Auction = () => {
-  const auctionData = [
+  const [auctionData, setAuctionData] = useState([
     {
       species: 'Cattle',
       PNS1: '500-600 kg',
@@ -11,6 +11,10 @@ const Auction = () => {
       liveWeight: 'Liveweight',
       dressedWeight: 'Estimated Dressed weight',
       thirdRow: 'Fattener',
+      liveWeightValue: '',
+      dressedWeightValue: '',
+      workDraftValue: '',
+      isEditable: false, // New property for edit mode
     },
     {
       species: 'Carabao',
@@ -20,6 +24,10 @@ const Auction = () => {
       liveWeight: 'Liveweight',
       dressedWeight: 'Estimated Dressed weight',
       thirdRow: 'Work/Draft',
+      liveWeightValue: '',
+      dressedWeightValue: '',
+      workDraftValue: '',
+      isEditable: false,
     },
     {
       species: 'Horse',
@@ -29,6 +37,10 @@ const Auction = () => {
       liveWeight: 'Liveweight',
       dressedWeight: 'Estimated Dressed weight',
       thirdRow: 'Work/Draft',
+      liveWeightValue: '',
+      dressedWeightValue: '',
+      workDraftValue: '',
+      isEditable: false,
     },
     {
       species: 'Goat',
@@ -37,6 +49,10 @@ const Auction = () => {
       PNS4_3: '',
       liveWeight: 'Liveweight',
       dressedWeight: 'Estimated Dressed weight',
+      liveWeightValue: '',
+      dressedWeightValue: '',
+      workDraftValue: '',
+      isEditable: false,
     },
     {
       species: 'Hog',
@@ -45,8 +61,35 @@ const Auction = () => {
       PNS4_3: '',
       liveWeight: 'Liveweight',
       dressedWeight: 'Estimated Dressed weight',
+      liveWeightValue: '',
+      dressedWeightValue: '',
+      workDraftValue: '',
+      isEditable: false,
     },
-  ];
+  ]);
+
+  // Function to handle input changes
+  const handleInputChange = (index, field, value) => {
+    const updatedData = [...auctionData];
+    updatedData[index][field] = value;
+    setAuctionData(updatedData);
+  };
+
+  // Function to toggle edit mode for a specific item
+  const toggleEdit = (index) => {
+    const updatedData = [...auctionData];
+    updatedData[index].isEditable = !updatedData[index].isEditable;
+    setAuctionData(updatedData);
+  };
+
+  // Function to save changes and exit edit mode
+  const saveChanges = () => {
+    const updatedData = auctionData.map(item => ({
+      ...item,
+      isEditable: false, // Disable edit mode for all items
+    }));
+    setAuctionData(updatedData);
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -70,39 +113,106 @@ const Auction = () => {
                 <React.Fragment key={index}>
                   <tr className="border-t">
                     <td className="p-3 font-bold">{item.species}</td>
-                    <td className="p-3">{item.PNS1}</td>
-                    <td className="p-3">{item.PNS2_3}</td>
-                    <td className="p-3">{item.PNS4_3}</td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.PNS1}
+                        onChange={(e) => handleInputChange(index, 'PNS1', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable} 
+                      />
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.PNS2_3}
+                        onChange={(e) => handleInputChange(index, 'PNS2_3', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.PNS4_3}
+                        onChange={(e) => handleInputChange(index, 'PNS4_3', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
                   </tr>
                   <tr className="border-t bg-gray-100">
-                    <td className="p-3">Liveweight</td>
-                    <td className="p-3"></td>
+                    <td className="p-3">{item.liveWeight}</td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.liveWeightValue}
+                        onChange={(e) => handleInputChange(index, 'liveWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
                     <td className="p-3"></td>
                     <td className="p-3"></td>
                   </tr>
                   <tr className="border-t">
-                    <td className="p-3">Estimated Dressed weight</td>
-                    <td className="p-3"></td>
+                    <td className="p-3">{item.dressedWeight}</td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.dressedWeightValue}
+                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
                     <td className="p-3"></td>
                     <td className="p-3"></td>
                   </tr>
                   {item.thirdRow && (
                     <tr className="border-t bg-gray-100">
                       <td className="p-3">{item.thirdRow}</td>
-                      <td className="p-3"></td>
+                      <td className="p-3">
+                        <input
+                          type="text"
+                          value={item.workDraftValue}
+                          onChange={(e) => handleInputChange(index, 'workDraftValue', e.target.value)}
+                          className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                          disabled={!item.isEditable}
+                        />
+                      </td>
                       <td className="p-3"></td>
                       <td className="p-3"></td>
                     </tr>
                   )}
+                  {/* Edit and Done buttons for each row */}
+                  <tr>
+                    <td colSpan="4" className="p-3">
+                      <button
+                        className="mt-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
+                        onClick={() => toggleEdit(index)} // Toggle edit mode for the specific row
+                      >
+                        {item.isEditable ? 'Cancel' : 'Edit'}
+                      </button>
+                      {item.isEditable && (
+                        <button
+                          className="mt-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
+                          onClick={saveChanges} // Save changes and disable all edit modes
+                        >
+                          DONE
+                        </button>
+                      )}
+                    </td>
+                  </tr>
                 </React.Fragment>
               ))}
             </tbody>
           </table>
+          <div className="flex space-x-2">
+            <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">SAVE</button>
+          </div>
         </div>
       </div>
-      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">Edit</button>
-      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">Add</button>      
-      <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">DONE</button>   
     </div>
   );
 };
