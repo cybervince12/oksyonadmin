@@ -8,7 +8,13 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    navigate('/admin/dashboard'); 
+
+    // Check if the entered username and password match 'admin123'
+    if (username === 'admin123' && password === 'admin123') {
+      navigate('/admin/dashboard');
+    } else {
+      alert('Invalid username or password');
+    }
   };
 
   return (

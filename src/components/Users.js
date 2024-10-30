@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
 import TopHeader from './TopHeader'; // Import TopHeader component
 
 const Users = () => {
-  const users = [
-    { id: '#001', name: 'Earnest Alkuino', location: 'Pagbilao Quezon', bidder: true, seller: true, phone: '0000000000' },
-    { id: '#002', name: 'Vincent Castillo', location: 'Lucena City', bidder: false, seller: true, phone: '0000000000' },
-    { id: '#003', name: 'Jane Reyes', location: 'Lucena City', bidder: true, seller: false, phone: '0000000000' },
-  ];
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data, error } = await supabase.from('users').select('*');
+      if (error) {
+        setErrorMessage('Error fetching users. Please try again later.');
+        console.error('Error fetching users:', error);
+      } else {
+        setUsers(data);
+      }
+      setLoading(false);
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (errorMessage) {
+    return <p>{errorMessage}</p>;
+  }
 
   return (
     <div className="flex flex-col h-screen">
@@ -28,9 +50,9 @@ const Users = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => (
-                <tr key={index} className="border-t">
-                  <td className="p-2">{user.id}</td>
+              {users.map((user) => (
+                <tr key={user.id} className="border-t">
+                  <td className="p-2">{user.user_id}</td>
                   <td className="p-2">{user.name}</td>
                   <td className="p-2">{user.location}</td>
                   <td className="p-2">{user.bidder ? '✔' : '✘'}</td>

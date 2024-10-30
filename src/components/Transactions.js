@@ -1,28 +1,82 @@
-import React, { useState } from 'react';
-import TopHeader from './TopHeader'; 
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import TopHeader from './TopHeader';
 
 const Transactions = () => {
+  const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
 
-  const transactions = [
-    { auctionId: '001', title: 'Cattle Sale', status: 'To review', shippingPermit: 'Upcoming' },
-    { auctionId: '002', title: 'Cattle Sale', status: 'Posted', shippingPermit: 'Upcoming' },
-    { auctionId: '003', title: 'Sheep Sale', status: 'Posted', shippingPermit: 'Upcoming' },
-  ];
+  // Fetch transactions from Supabase
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const { data, error } = await supabase.from('transactions').select('*');
+      if (error) {
+        console.error('Error fetching transactions:', error);
+      } else {
+        setTransactions(data);
+      }
+    };
+    fetchTransactions();
+  }, []);
+
+  // Delete a transaction by ID
+  const handleDelete = async (id) => {
+    const { error } = await supabase.from('transactions').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting transaction:', error);
+    } else {
+      setTransactions(transactions.filter((transaction) => transaction.id !== id));
+    }
+  };
+
+  // Edit a transaction's status
+  const handleEdit = async (id, currentStatus) => {
+    const newStatus = prompt('Enter new status:', currentStatus);
+    if (newStatus && newStatus !== currentStatus) {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ status: newStatus })
+        .eq('id', id);
+      if (error) {
+        console.error('Error updating transaction:', error);
+      } else {
+        setTransactions(
+          transactions.map((transaction) =>
+            transaction.id === id ? { ...transaction, status: newStatus } : transaction
+          )
+        );
+      }
+    }
+  };
 
   const renderTransactions = () => {
     return transactions.map((transaction, index) => (
       <tr key={index} className="border-t">
-        <td className="p-2">{transaction.auctionId}</td>
+        <td className="p-2">{transaction.auction_id}</td>
         <td className="p-2">{transaction.title}</td>
         <td className="p-2">{transaction.status}</td>
         <td className="p-2">
-          <button className="text-blue-500 hover:text-blue-700">Edit</button> |{' '}
-          <button className="text-red-500 hover:text-red-700">Delete</button>
+          <button
+            onClick={() => handleEdit(transaction.id, transaction.status)}
+            className="text-blue-500 hover:text-blue-700"
+          >
+            Edit
+          </button>{' '}
+          |{' '}
+          <button
+            onClick={() => handleDelete(transaction.id)}
+            className="text-red-500 hover:text-red-700"
+          >
+            Delete
+          </button>
         </td>
         <td className="p-2">
-          <span className={`py-1 px-3 rounded ${transaction.shippingPermit === 'Upcoming' ? 'bg-orange-500 text-white' : 'bg-green-500 text-white'}`}>
-            {transaction.shippingPermit}
+          <span
+            className={`py-1 px-3 rounded ${
+              transaction.shipping_permit === 'Upcoming' ? 'bg-orange-500 text-white' : 'bg-green-500 text-white'
+            }`}
+          >
+            {transaction.shipping_permit}
           </span>
         </td>
       </tr>
@@ -31,13 +85,8 @@ const Transactions = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Apply Top Header */}
       <TopHeader title="Transactions" />
-
-      {/* Main Content */}
       <div className="p-6 bg-gray-100 flex-grow">
-    
-        {/* Tab Navigation */}
         <div className="border-b mb-4">
           <button
             onClick={() => setActiveTab('pending')}
@@ -58,8 +107,6 @@ const Transactions = () => {
             Finish Transaction
           </button>
         </div>
-
-        {/* Transaction Table */}
         <div className="bg-white shadow-md rounded-lg p-4">
           <table className="w-full table-auto">
             <thead>
