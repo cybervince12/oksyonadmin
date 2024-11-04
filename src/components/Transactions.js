@@ -5,6 +5,7 @@ import TopHeader from './TopHeader';
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
+  const [errorMessage, setErrorMessage] = useState(null);
 
   // Fetch transactions from Supabase
   useEffect(() => {
@@ -12,6 +13,7 @@ const Transactions = () => {
       const { data, error } = await supabase.from('transactions').select('*');
       if (error) {
         console.error('Error fetching transactions:', error);
+        setErrorMessage('Failed to fetch transactions. Please try again later.');
       } else {
         setTransactions(data);
       }
@@ -24,6 +26,7 @@ const Transactions = () => {
     const { error } = await supabase.from('transactions').delete().eq('id', id);
     if (error) {
       console.error('Error deleting transaction:', error);
+      setErrorMessage('Failed to delete transaction. Please try again.');
     } else {
       setTransactions(transactions.filter((transaction) => transaction.id !== id));
     }
@@ -39,6 +42,7 @@ const Transactions = () => {
         .eq('id', id);
       if (error) {
         console.error('Error updating transaction:', error);
+        setErrorMessage('Failed to update transaction. Please try again.');
       } else {
         setTransactions(
           transactions.map((transaction) =>
@@ -49,8 +53,13 @@ const Transactions = () => {
     }
   };
 
+  // Render filtered transactions based on the active tab
   const renderTransactions = () => {
-    return transactions.map((transaction, index) => (
+    const filteredTransactions = transactions.filter(
+      (transaction) => transaction.status === activeTab
+    );
+
+    return filteredTransactions.map((transaction, index) => (
       <tr key={index} className="border-t">
         <td className="p-2">{transaction.auction_id}</td>
         <td className="p-2">{transaction.title}</td>
@@ -108,6 +117,7 @@ const Transactions = () => {
           </button>
         </div>
         <div className="bg-white shadow-md rounded-lg p-4">
+          {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
           <table className="w-full table-auto">
             <thead>
               <tr className="text-left bg-gray-100">

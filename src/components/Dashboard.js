@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { supabase } from '../supabaseClient'; // Make sure this path is correct
+import { supabase } from '../supabaseClient';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,7 +12,6 @@ import {
 } from 'chart.js';
 import TopHeader from './TopHeader';
 
-// Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
@@ -21,6 +20,7 @@ const Dashboard = () => {
   const [announcementDate, setAnnouncementDate] = useState('');
   const [announcementTime, setAnnouncementTime] = useState('');
   const [announcements, setAnnouncements] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const data = {
     labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Hogs'],
@@ -44,7 +44,7 @@ const Dashboard = () => {
     },
   };
 
-  // Fetch announcements from Supabase on component mount
+  // Fetch announcements on component mount
   useEffect(() => {
     const fetchAnnouncements = async () => {
       const { data, error } = await supabase
@@ -54,6 +54,7 @@ const Dashboard = () => {
 
       if (error) {
         console.error('Error fetching announcements:', error.message);
+        setErrorMessage('Failed to fetch announcements. Please try again later.');
       } else {
         setAnnouncements(data);
       }
@@ -62,44 +63,41 @@ const Dashboard = () => {
     fetchAnnouncements();
   }, []);
 
-  // Function to handle saving a new announcement to Supabase
+  // Function to handle saving a new announcement
   const handleSaveAnnouncement = async () => {
+    if (!announcementText || !announcementDate || !announcementTime) {
+      console.error('All fields must be filled');
+      setErrorMessage('Please fill out all fields before saving.');
+      return;
+    }
+
     const newAnnouncement = {
       text: announcementText,
       date: announcementDate,
       time: announcementTime,
     };
 
-    // Insert the new announcement into Supabase
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('announcements')
-      .insert([newAnnouncement]);
+      .insert([newAnnouncement])
+      .select('*'); // Return inserted data for immediate update
 
     if (error) {
       console.error('Error saving announcement:', error.message);
+      setErrorMessage('Failed to save the announcement. Please try again.');
     } else {
-      // Fetch updated announcements after saving
-      const { data, error: fetchError } = await supabase
-        .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (fetchError) {
-        console.error('Error fetching announcements after save:', fetchError.message);
-      } else {
-        setAnnouncements(data); // Update state with the latest announcements
-      }
-
-      // Close the form and reset input fields
+      setAnnouncements((prevAnnouncements) => [data[0], ...prevAnnouncements]); // Add new announcement
       setShowAnnouncementForm(false);
       setAnnouncementText('');
       setAnnouncementDate('');
       setAnnouncementTime('');
+      setErrorMessage(null); // Clear any previous errors
     }
   };
 
   const handleAddAnnouncement = () => {
     setShowAnnouncementForm(true);
+    setErrorMessage(null); // Clear errors when opening the form
   };
 
   return (
@@ -144,6 +142,7 @@ const Dashboard = () => {
                   +
                 </button>
               </div>
+              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
               <div className="mt-4">
                 <h3 className="font-semibold">Current Announcements:</h3>
                 <ul>

@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import TopHeader from './TopHeader'; // Import TopHeader component
+import TopHeader from './TopHeader';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  // Fetch users from Supabase
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
+      setErrorMessage(null); // Clear any existing errors
+
       const { data, error } = await supabase.from('users').select('*');
       if (error) {
         setErrorMessage('Error fetching users. Please try again later.');
@@ -23,16 +27,23 @@ const Users = () => {
   }, []);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   if (errorMessage) {
-    return <p>{errorMessage}</p>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">{errorMessage}</p>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Apply TopHeader component */}
       <TopHeader title="Users" />
 
       {/* Main Content */}
