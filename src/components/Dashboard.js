@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [announcementTime, setAnnouncementTime] = useState('');
   const [announcements, setAnnouncements] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [activeUsersCount, setActiveUsersCount] = useState(0); // New state for active users count
 
   const data = {
     labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Hogs'],
@@ -61,6 +62,24 @@ const Dashboard = () => {
     };
 
     fetchAnnouncements();
+  }, []);
+
+  // Fetch profiles count for Active Users
+  useEffect(() => {
+    const fetchProfilesCount = async () => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true }); // Use head to return only count
+
+      if (error) {
+        console.error('Error fetching active users count:', error.message);
+        setErrorMessage('Failed to fetch active users count. Please try again later.');
+      } else {
+        setActiveUsersCount(count); // Set the count of profiles as active users
+      }
+    };
+
+    fetchProfilesCount();
   }, []);
 
   // Function to handle saving a new announcement
@@ -114,7 +133,7 @@ const Dashboard = () => {
             <div className="bg-white shadow-md rounded-lg p-4">
               <h2 className="font-semibold text-lg mb-4 text-green-800">Key Metrics</h2>
               <ul className="space-y-2">
-                <li>Active Users: <span className="font-bold">1000</span></li>
+                <li>Active Users: <span className="font-bold">{activeUsersCount}</span></li>
                 <li>Upcoming Auctions: <span className="font-bold">120</span></li>
                 <li>Live Auctions: <span className="font-bold">80</span></li>
                 <li>Completed Transactions: <span className="font-bold">100</span></li>
