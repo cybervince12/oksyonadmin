@@ -152,8 +152,25 @@ const Auction = () => {
                         disabled={!item.isEditable}
                       />
                     </td>
-                    <td className="p-3"></td>
-                    <td className="p-3"></td>
+                    <td className="p-3">
+                    <input
+                        type="text"
+                        value={item.liveWeightValue}
+                        onChange={(e) => handleInputChange(index, 'liveWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
+                    <td className="p-3">
+                    <input
+                        type="text"
+                        value={item.liveWeightValue}
+                        onChange={(e) => handleInputChange(index, 'liveWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
+
                   </tr>
                   <tr className="border-t">
                     <td className="p-3">{item.dressedWeight}</td>
@@ -166,8 +183,24 @@ const Auction = () => {
                         disabled={!item.isEditable}
                       />
                     </td>
-                    <td className="p-3"></td>
-                    <td className="p-3"></td>
+                    <td className="p-3">
+                    <input
+                        type="text"
+                        value={item.dressedWeightValue}
+                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
+                    <td className="p-3">
+                    <input
+                        type="text"
+                        value={item.dressedWeightValue}
+                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                    </td>
                   </tr>
                   {item.thirdRow && (
                     <tr className="border-t bg-gray-100">
@@ -181,8 +214,24 @@ const Auction = () => {
                           disabled={!item.isEditable}
                         />
                       </td>
-                      <td className="p-3"></td>
-                      <td className="p-3"></td>
+                      <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.dressedWeightValue}
+                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                      </td>
+                      <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.dressedWeightValue}
+                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
+                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
+                        disabled={!item.isEditable}
+                      />
+                      </td>
                     </tr>
                   )}
                   {/* Edit and Done buttons for each row */}
