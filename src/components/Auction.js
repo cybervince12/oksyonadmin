@@ -1,264 +1,140 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient'; // Make sure your Supabase client is correctly configured
 import TopHeader from './TopHeader';
 
 const Auction = () => {
-  const [auctionData, setAuctionData] = useState([
-    {
-      species: 'Cattle',
-      PNS1: '500-600 kg',
-      PNS2_3: '450-500 kg',
-      PNS4_3: '350-400 kg',
-      liveWeight: 'Liveweight',
-      dressedWeight: 'Estimated Dressed weight',
-      thirdRow: 'Fattener',
-      liveWeightValue: '',
-      dressedWeightValue: '',
-      workDraftValue: '',
-      isEditable: false,
-    },
-    {
-      species: 'Carabao',
-      PNS1: '220-330 kg',
-      PNS2_3: '450-470 kg',
-      PNS4_3: '480-500 kg',
-      liveWeight: 'Liveweight',
-      dressedWeight: 'Estimated Dressed weight',
-      thirdRow: 'Work/Draft',
-      liveWeightValue: '',
-      dressedWeightValue: '',
-      workDraftValue: '',
-      isEditable: false,
-    },
-    {
-      species: 'Horse',
-      PNS1: '500-600 kg',
-      PNS2_3: '450-500 kg',
-      PNS4_3: '350-400 kg',
-      liveWeight: 'Liveweight',
-      dressedWeight: 'Estimated Dressed weight',
-      thirdRow: 'Work/Draft',
-      liveWeightValue: '',
-      dressedWeightValue: '',
-      workDraftValue: '',
-      isEditable: false,
-    },
-    {
-      species: 'Goat',
-      PNS1: '',
-      PNS2_3: '',
-      PNS4_3: '',
-      liveWeight: 'Liveweight',
-      dressedWeight: 'Estimated Dressed weight',
-      liveWeightValue: '',
-      dressedWeightValue: '',
-      workDraftValue: '',
-      isEditable: false,
-    },
-    {
-      species: 'Pig',
-      PNS1: '',
-      PNS2_3: '',
-      PNS4_3: '',
-      liveWeight: 'Liveweight',
-      dressedWeight: 'Estimated Dressed weight',
-      thirdRow: 'Fattener',
-      liveWeightValue: '',
-      dressedWeightValue: '',
-      workDraftValue: '',
-      isEditable: false,
-    },
-    {
-      species: 'Sheep',
-      PNS1: '',
-      PNS2_3: '',
-      PNS4_3: '',
-      liveWeight: 'Liveweight',
-      dressedWeight: 'Estimated Dressed weight',
-      thirdRow: 'Fattener',
-      liveWeightValue: '',
-      dressedWeightValue: '',
-      workDraftValue: '',
-      isEditable: false,
-    },
-  ]);
+  const [currentPage, setCurrentPage] = useState('PNS1'); // Set PNS1 as default page
+  const [auctionData, setAuctionData] = useState([]);
 
-  const handleInputChange = (index, field, value) => {
-    const updatedData = [...auctionData];
-    updatedData[index][field] = value;
-    setAuctionData(updatedData);
-  };
+  // Fetch data from Supabase based on the current page
+  useEffect(() => {
+    const fetchData = async () => {
+      let dataResponse;
+      let error;
 
-  const toggleEdit = (index) => {
-    const updatedData = [...auctionData];
-    updatedData[index].isEditable = !updatedData[index].isEditable;
-    setAuctionData(updatedData);
-  };
+      if (currentPage === 'PNS1') {
+        ({ data: dataResponse, error } = await supabase.from('pns1_prices').select('*'));
+      } else if (currentPage === 'PNS2') {
+        const { data: animals, error: animalError } = await supabase.from('pns2_animals').select('*');
+        if (animalError) console.error(animalError);
 
-  const saveChanges = () => {
-    const updatedData = auctionData.map(item => ({
-      ...item,
-      isEditable: false,
-    }));
-    setAuctionData(updatedData);
-  };
+        const animalIds = animals.map((animal) => animal.id);
+        const { data: prices, error: priceError } = await supabase
+          .from('pns2_prices')
+          .select('*')
+          .in('animal_id', animalIds);
 
-  return (
-    <div className="flex flex-col h-screen">
-      <TopHeader title="Auction" />
+        if (priceError) console.error(priceError);
+
+        dataResponse = animals.map((animal) => ({
+          animal: animal.animal,
+          weightRange: animal.weight_range,
+          prices: prices
+            .filter((price) => price.animal_id === animal.id)
+            .map((price) => ({ label: price.label, value: price.price_value })),
+        }));
+      } else if (currentPage === 'PNS3') {
+        ({ data: dataResponse, error } = await supabase.from('pns3_prices').select('*'));
+      }
+
+      if (error) {
+        console.error('Error fetching data:', error);
+      } else {
+        // Organize data by animal for easier mapping in the component
+        if (currentPage === 'PNS1' || currentPage === 'PNS3') {
+          const organizedData = dataResponse.reduce((acc, item) => {
+            const { animal, weight_range, label, price_value } = item;
+            const existingAnimal = acc.find((a) => a.animal === animal);
+
+            if (existingAnimal) {
+              existingAnimal.prices.push({ label, value: price_value });
+            } else {
+              acc.push({
+                animal,
+                weightRange: weight_range,
+                prices: [{ label, value: price_value }],
+              });
+            }
+            return acc;
+          }, []);
+          setAuctionData(organizedData);
+        } else {
+          setAuctionData(dataResponse);
+        }
+      }
+    };
+
+    fetchData();
+  }, [currentPage]);
+
+  // Render the main content based on the current page
+  const renderContent = () => {
+    return (
       <div className="p-6 bg-gray-100 flex-grow">
         <div className="bg-white shadow-md rounded-lg p-4 relative">
-          <table className="w-full table-auto border-collapse mt-10">
+          <div className="flex justify-center space-x-2 mb-4">
+            <button onClick={() => setCurrentPage('PNS1')} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">PNS1</button>
+            <button onClick={() => setCurrentPage('PNS2')} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">PNS2</button>
+            <button onClick={() => setCurrentPage('PNS3')} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">PNS3</button>
+          </div>
+          <table className="w-full table-auto border-collapse mt-4">
             <thead>
               <tr className="bg-green-800 text-white text-left">
                 <th className="p-3 border">Species</th>
-                <th className="p-3 border">PNS 1</th>
-                <th className="p-3 border">PNS 2-3</th>
-                <th className="p-3 border">PNS 4-3</th>
+                {currentPage === 'PNS1' && <th className="p-3 border">PNS 1</th>}
+                {currentPage === 'PNS2' && <th className="p-3 border">PNS 2-3</th>}
+                {currentPage === 'PNS3' && <th className="p-3 border">PNS 4-3</th>}
               </tr>
             </thead>
             <tbody>
               {auctionData.map((item, index) => (
                 <React.Fragment key={index}>
                   <tr className="border-t">
-                    <td className="p-3 font-bold">{item.species}</td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.PNS1}
-                        onChange={(e) => handleInputChange(index, 'PNS1', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable} 
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.PNS2_3}
-                        onChange={(e) => handleInputChange(index, 'PNS2_3', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.PNS4_3}
-                        onChange={(e) => handleInputChange(index, 'PNS4_3', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                  </tr>
-                  <tr className="border-t bg-gray-100">
-                    <td className="p-3">{item.liveWeight}</td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.liveWeightValue}
-                        onChange={(e) => handleInputChange(index, 'liveWeightValue', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.liveWeightValue}
-                        onChange={(e) => handleInputChange(index, 'liveWeightValue', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.liveWeightValue}
-                        onChange={(e) => handleInputChange(index, 'liveWeightValue', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="p-3">{item.dressedWeight}</td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.dressedWeightValue}
-                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.dressedWeightValue}
-                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.dressedWeightValue}
-                        onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
-                        className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                        disabled={!item.isEditable}
-                      />
-                    </td>
-                  </tr>
-                  {item.thirdRow && (
-                    <tr className="border-t bg-gray-100">
-                      <td className="p-3">{item.thirdRow}</td>
+                    <td className="p-3 font-bold">{item.animal}</td>
+                    {currentPage === 'PNS1' && (
                       <td className="p-3">
                         <input
                           type="text"
-                          value={item.workDraftValue}
-                          onChange={(e) => handleInputChange(index, 'workDraftValue', e.target.value)}
-                          className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                          disabled={!item.isEditable}
+                          value={item.weightRange}
+                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
+                          disabled
                         />
                       </td>
+                    )}
+                    {currentPage === 'PNS2' && (
                       <td className="p-3">
                         <input
                           type="text"
-                          value={item.dressedWeightValue}
-                          onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
-                          className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                          disabled={!item.isEditable}
+                          value={item.weightRange}
+                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
+                          disabled
                         />
                       </td>
+                    )}
+                    {currentPage === 'PNS3' && (
                       <td className="p-3">
                         <input
                           type="text"
-                          value={item.dressedWeightValue}
-                          onChange={(e) => handleInputChange(index, 'dressedWeightValue', e.target.value)}
-                          className={`border border-gray-300 p-1 rounded w-full ${item.isEditable ? '' : 'bg-gray-200 cursor-not-allowed'}`}
-                          disabled={!item.isEditable}
+                          value={item.weightRange}
+                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
+                          disabled
+                        />
+                      </td>
+                    )}
+                  </tr>
+                  {item.prices.map((price, priceIndex) => (
+                    <tr key={priceIndex} className="border-t bg-gray-100">
+                      <td className="p-3">{price.label}</td>
+                      <td className="p-3" colSpan="3">
+                        <input
+                          type="text"
+                          value={price.value}
+                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
+                          disabled
                         />
                       </td>
                     </tr>
-                  )}
-                  <tr>
-                    <td colSpan="4" className="p-3">
-                      <button
-                        className="mt-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
-                        onClick={() => toggleEdit(index)}
-                      >
-                        {item.isEditable ? 'Cancel' : 'Edit'}
-                      </button>
-                      {item.isEditable && (
-                        <button
-                          className="mt-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
-                          onClick={saveChanges}
-                        >
-                          DONE
-                        </button>
-                      )}
-                    </td>
-                  </tr>
+                  ))}
                 </React.Fragment>
               ))}
             </tbody>
@@ -268,6 +144,13 @@ const Auction = () => {
           </div>
         </div>
       </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col h-screen">
+      <TopHeader title={currentPage} />
+      {renderContent()}
     </div>
   );
 };

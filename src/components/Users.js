@@ -13,12 +13,18 @@ const Users = () => {
       setLoading(true);
       setErrorMessage(null); // Clear any existing errors
 
-      const { data, error } = await supabase.from('users').select('*');
+      const { data, error } = await supabase.from('profiles').select('*');
       if (error) {
         setErrorMessage('Error fetching users. Please try again later.');
         console.error('Error fetching users:', error);
       } else {
-        setUsers(data);
+        // Map data to match the UI structure
+        const formattedData = data.map((profile) => ({
+          user_id: profile.id,
+          name: profile.full_name,
+          email: profile.email,
+        }));
+        setUsers(formattedData);
       }
       setLoading(false);
     };
@@ -54,21 +60,15 @@ const Users = () => {
               <tr className="bg-green-800 text-white text-left">
                 <th className="p-2">User ID</th>
                 <th className="p-2">Name</th>
-                <th className="p-2">Location</th>
-                <th className="p-2">Bidder</th>
-                <th className="p-2">Seller</th>
-                <th className="p-2">Phone Number</th>
+                <th className="p-2">Email</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user.id} className="border-t">
+                <tr key={user.user_id} className="border-t">
                   <td className="p-2">{user.user_id}</td>
                   <td className="p-2">{user.name}</td>
-                  <td className="p-2">{user.location}</td>
-                  <td className="p-2">{user.bidder ? '✔' : '✘'}</td>
-                  <td className="p-2">{user.seller ? '✔' : '✘'}</td>
-                  <td className="p-2">{user.phone}</td>
+                  <td className="p-2">{user.email}</td>
                 </tr>
               ))}
             </tbody>
