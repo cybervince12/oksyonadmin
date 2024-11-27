@@ -118,7 +118,7 @@ const Dashboard = () => {
   };
 
   const toggleShowAllAnnouncements = () => {
-    setShowAllAnnouncements(!showAllAnnouncements); // Toggle visibility of all announcements
+    setShowAllAnnouncements(!showAllAnnouncements);
   };
 
   return (

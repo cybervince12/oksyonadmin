@@ -83,7 +83,7 @@ const Auction = () => {
                 <th className="p-3 border">Species</th>
                 {currentPage === 'PNS1' && <th className="p-3 border">PNS 1</th>}
                 {currentPage === 'PNS2' && <th className="p-3 border">PNS 2-3</th>}
-                {currentPage === 'PNS3' && <th className="p-3 border">PNS 4-3</th>}
+                {currentPage === 'PNS3' && <th className="p-3 border">PNS 4-5</th>}
               </tr>
             </thead>
             <tbody>
