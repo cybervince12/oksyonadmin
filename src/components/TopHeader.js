@@ -6,14 +6,14 @@ const TopHeader = ({ title, onSearch }) => {
 
   const handleSearch = () => {
     if (onSearch) {
-      onSearch(searchQuery); // Trigger the search callback with the query
+      onSearch(searchQuery);
     } else {
-      console.log('Search query:', searchQuery); // Fallback for debugging
+      console.log('Search query:', searchQuery);
     }
   };
 
   return (
-    <div className="p-6 bg-white shadow-md flex justify-between items-center">
+    <div className="fixed top-0 left-64 w-[calc(100%-16rem)] z-50 p-6 bg-white shadow-md flex justify-between items-center">
       <h1 className="text-3xl font-bold text-green-800">{title}</h1>
 
       {/* Centered Search Input with Icon */}
@@ -22,14 +22,14 @@ const TopHeader = ({ title, onSearch }) => {
           <span className="absolute inset-y-0 left-0 flex items-center pl-3">
             <FaSearch
               className="text-green-800 cursor-pointer"
-              onClick={handleSearch} // Trigger search on icon click
+              onClick={handleSearch}
             />
           </span>
           <input
             type="text"
             placeholder="Search for something..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Update state on input
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-200 text-gray-700 w-full"
           />
         </div>
@@ -37,17 +37,12 @@ const TopHeader = ({ title, onSearch }) => {
 
       {/* Icons and User Profile */}
       <div className="flex items-center gap-4">
-        {/* Settings Icon */}
         <button className="bg-gray-200 p-3 rounded-full hover:bg-gray-300 transition">
           <FaCog className="text-green-700" />
         </button>
-
-        {/* Notifications Icon */}
         <button className="bg-gray-200 p-3 rounded-full hover:bg-gray-300 transition">
           <FaBell className="text-green-700" />
         </button>
-
-        {/* User Profile */}
         <div className="flex items-center gap-2">
           <img
             src="https://via.placeholder.com/40"

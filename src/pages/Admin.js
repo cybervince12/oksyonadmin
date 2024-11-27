@@ -1,16 +1,25 @@
 import React from 'react';
-import Sidebar from '../components/Sidebar'; // Sidebar component
-import { Outlet } from 'react-router-dom'; // For nested routes
+import TopHeader from '../components/TopHeader';
+import Sidebar from '../components/Sidebar';
+import { Outlet } from 'react-router-dom';
 
 const Admin = () => {
+  const handleSearch = (query) => {
+    console.log('Search initiated for:', query);
+  };
+
   return (
-    <div className="flex h-screen">
-      {/* Sidebar is fixed on the left */}
+    <div>
+      {/* Sidebar */}
       <Sidebar />
-      {/* Main content area with left margin to account for the sidebar */}
-      <main className="flex-1 ml-64 p-6 bg-gray-100 overflow-auto">
-        <Outlet /> {/* This will render the nested routes like Dashboard, Transactions, etc. */}
-      </main>
+
+      {/* Top Header */}
+      <TopHeader title="Admin Dashboard" onSearch={handleSearch} />
+
+      {/* Main Content */}
+      <div className="ml-64 pt-[88px] p-4">
+        <Outlet /> {/* Nested routes go here */}
+      </div>
     </div>
   );
 };
