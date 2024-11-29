@@ -1,19 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';  // Import Supabase client
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  // Login handler
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    // Check if the entered username and password match 'admin123'
-    if (username === 'admin123' && password === 'admin123') {
-      navigate('/admin/dashboard');
-    } else {
-      alert('Invalid username or password');
+    try {
+      // Query the admin table to find a matching username and password
+      const { data, error } = await supabase
+        .from('admin')  // Reference the admin table
+        .select('*')    // Select all columns
+        .eq('username', username)  // Filter by username
+        .single();     // Get only the first matching result (since usernames should be unique)
+
+      if (error || !data) {
+        // Error handling if username is not found
+        alert('Invalid username or password');
+        console.error(error);
+        return;
+      }
+
+      // Check if the password matches
+      if (data.password === password) {
+        // If the password matches, redirect to the dashboard
+        navigate('/admin/dashboard');
+      } else {
+        // If password doesn't match
+        alert('Invalid username or password');
+      }
+
+    } catch (err) {
+      console.error('Login error:', err);
+      alert('An error occurred during login');
     }
   };
 
@@ -40,40 +64,27 @@ const Login = () => {
           <div className="mb-6">
             <input
               type="text"
-              placeholder="username"
+              placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-green-500"
+              className="w-full p-2 border rounded-md"
             />
           </div>
-          <div className="mb-8">
+          <div className="mb-6">
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-green-500"
+              className="w-full p-2 border rounded-md"
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition duration-200 font-semibold"
+            className="w-full p-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-500"
           >
             Login
           </button>
-          <div className="flex items-center justify-between mt-6">
-            <label className="flex items-center text-gray-600">
-              <input type="checkbox" className="mr-2" />
-              Remember me
-            </label>
-            <button
-              type="button"
-              onClick={() => alert('Forgot Password? Feature is not yet implemented.')}
-              className="text-green-600 hover:text-green-800 focus:outline-none font-medium"
-            >
-              Forgot Password?
-            </button>
-          </div>
         </form>
       </div>
     </div>
