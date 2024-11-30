@@ -31,7 +31,7 @@ const Login = () => {
         // If the password matches, redirect to the dashboard
         navigate('/admin/dashboard');
       } else {
-        // If password doesn't match
+        // If passwor
         alert('Invalid username or password');
       }
 
@@ -59,33 +59,34 @@ const Login = () => {
 
       {/* Right Section with Login Form */}
       <div className="w-1/2 flex flex-col justify-center items-center p-12 bg-white">
-        <h1 className="text-4xl font-bold mb-10 text-gray-800">Welcome to OKsyon</h1>
+        <h1 className="text-4xl font-bold mb-10 text-green-800">Welcome to OKsyon</h1>
         <form onSubmit={handleLogin} className="w-full max-w-sm">
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <div className="mb-6">
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full p-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-500"
-          >
-            Login
-          </button>
-        </form>
+  <div className="mb-6">
+    <input
+      type="text"
+      placeholder="Username"
+      value={username}
+      onChange={(e) => setUsername(e.target.value)}
+      className="w-full p-3 border-2 border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
+    />
+  </div>
+  <div className="mb-6">
+    <input
+      type="password"
+      placeholder="Password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      className="w-full p-3 border-2 border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
+    />
+  </div>
+  <button
+    type="submit"
+    className="w-full p-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-500"
+  >
+    Login
+  </button>
+</form>
+
       </div>
     </div>
   );

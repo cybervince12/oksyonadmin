@@ -82,7 +82,9 @@ const Transactions = () => {
         <td className="p-2">
           <span
             className={`py-1 px-3 rounded ${
-              transaction.shipping_permit === 'Upcoming' ? 'bg-orange-500 text-white' : 'bg-green-500 text-white'
+              transaction.shipping_permit === 'Upcoming'
+                ? 'bg-orange-500 text-white'
+                : 'bg-green-500 text-white'
             }`}
           >
             {transaction.shipping_permit}
@@ -118,18 +120,20 @@ const Transactions = () => {
         </div>
         <div className="bg-white shadow-md rounded-lg p-4">
           {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="text-left bg-gray-100">
-                <th className="p-2">Auction ID</th>
-                <th className="p-2">Title</th>
-                <th className="p-2">Status</th>
-                <th className="p-2">Actions</th>
-                <th className="p-2">Shipping Permit</th>
-              </tr>
-            </thead>
-            <tbody>{renderTransactions()}</tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="text-left bg-green-800 text-white">
+                  <th className="p-2">Auction ID</th>
+                  <th className="p-2">Title</th>
+                  <th className="p-2">Status</th>
+                  <th className="p-2">Actions</th>
+                  <th className="p-2">Shipping Permit</th>
+                </tr>
+              </thead>
+              <tbody>{renderTransactions()}</tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

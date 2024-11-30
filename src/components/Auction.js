@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient'; // Make sure your Supabase client is correctly configured
+import { supabase } from '../supabaseClient';
 import TopHeader from './TopHeader';
 
 const Auction = () => {
-  const [currentPage, setCurrentPage] = useState('PNS1'); // Set PNS1 as default page
+  const [currentPage, setCurrentPage] = useState('PNS1');
   const [auctionData, setAuctionData] = useState([]);
 
-  // Fetch data from Supabase based on the current page
   useEffect(() => {
     const fetchData = async () => {
       let dataResponse;
@@ -40,7 +39,6 @@ const Auction = () => {
       if (error) {
         console.error('Error fetching data:', error);
       } else {
-        // Organize data by animal for easier mapping in the component
         if (currentPage === 'PNS1' || currentPage === 'PNS3') {
           const organizedData = dataResponse.reduce((acc, item) => {
             const { animal, weight_range, label, price_value } = item;
@@ -67,80 +65,58 @@ const Auction = () => {
     fetchData();
   }, [currentPage]);
 
-  // Render the main content based on the current page
   const renderContent = () => {
     return (
       <div className="p-6 bg-gray-100 flex-grow">
-        <div className="bg-white shadow-md rounded-lg p-4 relative">
-          <div className="flex justify-center space-x-2 mb-4">
-            <button onClick={() => setCurrentPage('PNS1')} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">PNS1</button>
-            <button onClick={() => setCurrentPage('PNS2')} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">PNS2</button>
-            <button onClick={() => setCurrentPage('PNS3')} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">PNS3</button>
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <div className="flex justify-center space-x-4 mb-6">
+            {['PNS1', 'PNS2', 'PNS3'].map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-6 py-2 font-semibold rounded-lg ${
+                  currentPage === page
+                    ? 'bg-green-700 text-white shadow-md'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
           </div>
-          <table className="w-full table-auto border-collapse mt-4">
-            <thead>
-              <tr className="bg-green-800 text-white text-left">
-                <th className="p-3 border">Species</th>
-                {currentPage === 'PNS1' && <th className="p-3 border">PNS 1</th>}
-                {currentPage === 'PNS2' && <th className="p-3 border">PNS 2-3</th>}
-                {currentPage === 'PNS3' && <th className="p-3 border">PNS 4-5</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {auctionData.map((item, index) => (
-                <React.Fragment key={index}>
-                  <tr className="border-t">
-                    <td className="p-3 font-bold">{item.animal}</td>
-                    {currentPage === 'PNS1' && (
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-300">
+              <thead>
+                <tr className="bg-green-700 text-white">
+                  <th className="p-3 border">Species</th>
+                  <th className="p-3 border">Weight Range</th>
+                  <th className="p-3 border">Prices</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auctionData.map((item, index) => (
+                  <React.Fragment key={index}>
+                    <tr className="bg-gray-50 border-b">
+                      <td className="p-3 font-semibold">{item.animal}</td>
+                      <td className="p-3 text-gray-700">{item.weightRange}</td>
                       <td className="p-3">
-                        <input
-                          type="text"
-                          value={item.weightRange}
-                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
-                          disabled
-                        />
-                      </td>
-                    )}
-                    {currentPage === 'PNS2' && (
-                      <td className="p-3">
-                        <input
-                          type="text"
-                          value={item.weightRange}
-                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
-                          disabled
-                        />
-                      </td>
-                    )}
-                    {currentPage === 'PNS3' && (
-                      <td className="p-3">
-                        <input
-                          type="text"
-                          value={item.weightRange}
-                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
-                          disabled
-                        />
-                      </td>
-                    )}
-                  </tr>
-                  {item.prices.map((price, priceIndex) => (
-                    <tr key={priceIndex} className="border-t bg-gray-100">
-                      <td className="p-3">{price.label}</td>
-                      <td className="p-3" colSpan="3">
-                        <input
-                          type="text"
-                          value={price.value}
-                          className="border border-gray-300 p-1 rounded w-full bg-gray-200 cursor-not-allowed"
-                          disabled
-                        />
+                        {item.prices.map((price, priceIndex) => (
+                          <div key={priceIndex} className="mb-2">
+                            <span className="font-medium text-gray-700">{price.label}: </span>
+                            <span className="text-gray-800">{price.value}</span>
+                          </div>
+                        ))}
                       </td>
                     </tr>
-                  ))}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex space-x-2">
-            <button className="mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded self-center">SAVE</button>
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex justify-end mt-6">
+            <button className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 shadow-md">
+              SAVE
+            </button>
           </div>
         </div>
       </div>
