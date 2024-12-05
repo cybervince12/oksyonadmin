@@ -124,7 +124,6 @@ const Users = () => {
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-green-800 text-white text-left">
-                <th className="p-2">User ID</th>
                 <th className="p-2">Name</th>
                 <th className="p-2">Email</th>
                 <th className="p-2">Actions</th>
@@ -133,7 +132,6 @@ const Users = () => {
             <tbody>
               {users.map((user) => (
                 <tr key={user.user_id} className="border-t">
-                  <td className="p-2">{user.user_id}</td>
                   <td className="p-2">{user.name}</td>
                   <td className="p-2">{user.email}</td>
                   <td className="p-2">
