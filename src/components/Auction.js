@@ -9,49 +9,50 @@ const Auction = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      let dataResponse;
-      let error;
+      try {
+        let dataResponse;
 
-      if (currentPage === 'PNS1') {
-        ({ data: dataResponse, error } = await supabase.from('pns1_prices').select('*'));
-      } else if (currentPage === 'PNS2') {
-        const { data: animals, error: animalError } = await supabase.from('pns2_animals').select('*');
-        if (animalError) console.error(animalError);
+        if (currentPage === 'PNS1') {
+          const { data, error } = await supabase.from('pns1_prices').select('*');
+          if (error) throw error;
+          dataResponse = data;
+        } else if (currentPage === 'PNS2') {
+          const { data: animals, error: animalError } = await supabase.from('pns2_animals').select('*');
+          if (animalError) throw animalError;
 
-        const animalIds = animals.map((animal) => animal.id);
-        const { data: prices, error: priceError } = await supabase
-          .from('pns2_prices')
-          .select('*')
-          .in('animal_id', animalIds);
+          const animalIds = animals.map((animal) => animal.id);
+          const { data: prices, error: priceError } = await supabase
+            .from('pns2_prices')
+            .select('*')
+            .in('animal_id', animalIds);
 
-        if (priceError) console.error(priceError);
+          if (priceError) throw priceError;
 
-        dataResponse = animals.map((animal) => ({
-          animal: animal.animal,
-          weightRange: animal.weight_range,
-          prices: prices
-            .filter((price) => price.animal_id === animal.id)
-            .map((price) => ({ label: price.label, value: price.price_value })),
-        }));
-      } else if (currentPage === 'PNS3') {
-        ({ data: dataResponse, error } = await supabase.from('pns3_prices').select('*'));
-      }
+          dataResponse = animals.map((animal) => ({
+            animal: animal.animal,
+            weightRange: animal.weight_range,
+            prices: prices
+              .filter((price) => price.animal_id === animal.id)
+              .map((price) => ({ id: price.id, label: price.label, value: price.price || '' })),
+          }));
+        } else if (currentPage === 'PNS3') {
+          const { data, error } = await supabase.from('pns3_prices').select('*');
+          if (error) throw error;
+          dataResponse = data;
+        }
 
-      if (error) {
-        console.error('Error fetching data:', error);
-      } else {
         if (currentPage === 'PNS1' || currentPage === 'PNS3') {
           const organizedData = dataResponse.reduce((acc, item) => {
-            const { animal, weight_range, label, price_value } = item;
+            const { animal, weight_range, label, id, price } = item;
             const existingAnimal = acc.find((a) => a.animal === animal);
 
             if (existingAnimal) {
-              existingAnimal.prices.push({ label, value: price_value });
+              existingAnimal.prices.push({ id, label, value: price || '' });
             } else {
               acc.push({
                 animal,
                 weightRange: weight_range,
-                prices: [{ label, value: price_value }],
+                prices: [{ id, label, value: price || '' }],
               });
             }
             return acc;
@@ -60,6 +61,8 @@ const Auction = () => {
         } else {
           setAuctionData(dataResponse);
         }
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
     };
 
@@ -77,46 +80,45 @@ const Auction = () => {
     setAuctionData(updatedData);
   };
 
-  // Save the updated auction data to the database
   const handleSave = async () => {
     try {
-      if (currentPage === 'PNS1' || currentPage === 'PNS3') {
-        // Save updates for PNS1 and PNS3
-        for (const item of auctionData) {
-          for (const price of item.prices) {
-            const { label, value } = price;
+      const updates = auctionData.flatMap((item) =>
+        item.prices.map((price) => ({
+          id: price.id,
+          price: price.value,
+        }))
+      );
 
-            // Update price in the corresponding table (PNS1 or PNS3)
-            const { error } = await supabase
-              .from(currentPage === 'PNS1' ? 'pns1_prices' : 'pns3_prices')
-              .upsert({ label, price_value: value }, { onConflict: ['label'] });
+      // Save the updates based on the current page
+      for (const update of updates) {
+        if (currentPage === 'PNS1' || currentPage === 'PNS3') {
+          // For PNS1 and PNS3, we are updating the price in the pns1_prices or pns3_prices table
+          const { error } = await supabase
+            .from(currentPage === 'PNS1' ? 'pns1_prices' : 'pns3_prices')
+            .update({ price: update.price })
+            .eq('id', update.id);
 
-            if (error) {
-              console.error('Error saving data:', error);
-            }
+          if (error) {
+            console.error('Error saving data:', error);
+            alert('Failed to save data.');
+            return;
           }
-        }
-      } else if (currentPage === 'PNS2') {
-        // Save updates for PNS2
-        for (const item of auctionData) {
-          for (const price of item.prices) {
-            const { label, value } = price;
+        } else if (currentPage === 'PNS2') {
+          // For PNS2, updating the price in the pns2_prices table
+          const { error } = await supabase
+            .from('pns2_prices')
+            .update({ price: update.price })
+            .eq('id', update.id);
 
-            // Update price for the animal in PNS2 table
-            const { error } = await supabase
-              .from('pns2_prices')
-              .upsert(
-                { animal_id: item.animal.id, label, price_value: value },
-                { onConflict: ['animal_id', 'label'] }
-              );
-
-            if (error) {
-              console.error('Error saving data:', error);
-            }
+          if (error) {
+            console.error('Error saving data:', error);
+            alert('Failed to save data.');
+            return;
           }
         }
       }
 
+      setIsEditable(false);
       alert('Data saved successfully!');
     } catch (error) {
       console.error('Error saving data:', error);
@@ -162,17 +164,14 @@ const Auction = () => {
                         {item.prices.map((price, priceIndex) => (
                           <div key={priceIndex} className="mb-2">
                             <span className="font-medium text-gray-700">{price.label}: </span>
-                            {isEditable ? (
-                              <input
-                                type="text"
-                                name="value"
-                                value={price.value}
-                                onChange={(e) => handleInputChange(e, index, priceIndex)}
-                                className="ml-2 border p-1 rounded"
-                              />
-                            ) : (
-                              <span className="text-gray-800">{price.value}</span>
-                            )}
+                            <input
+                              type="text"
+                              name="value"
+                              value={price.value}
+                              onChange={(e) => handleInputChange(e, index, priceIndex)}
+                              className="ml-2 border p-1 rounded"
+                              disabled={!isEditable}
+                            />
                           </div>
                         ))}
                       </td>
@@ -185,16 +184,18 @@ const Auction = () => {
           <div className="flex justify-end mt-6 space-x-4">
             <button
               onClick={handleEditToggle}
-              className="px-6 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 shadow-md"
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg"
             >
               {isEditable ? 'Cancel Edit' : 'Edit'}
             </button>
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 shadow-md"
-            >
-              SAVE
-            </button>
+            {isEditable && (
+              <button
+                onClick={handleSave}
+                className="px-6 py-2 bg-green-500 text-white rounded-lg"
+              >
+                Save
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -202,8 +203,8 @@ const Auction = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <TopHeader title={currentPage} />
+    <div>
+      <TopHeader />
       {renderContent()}
     </div>
   );
