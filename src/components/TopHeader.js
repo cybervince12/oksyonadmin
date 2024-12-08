@@ -15,8 +15,6 @@ const TopHeader = ({ title, onSearch }) => {
   return (
     <div className="fixed top-0 left-64 w-[calc(100%-16rem)] z-50 p-6 bg-white shadow-md flex justify-between items-center">
       <h1 className="text-3xl font-bold text-green-800">{title}</h1>
-
-      {/* Centered Search Input with Icon */}
       <div className="flex-grow flex justify-center">
         <div className="relative w-full max-w-lg">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -35,7 +33,6 @@ const TopHeader = ({ title, onSearch }) => {
         </div>
       </div>
 
-      {/* Icons and User Profile */}
       <div className="flex items-center gap-4">
         <button className="bg-gray-200 p-3 rounded-full hover:bg-gray-300 transition">
           <FaCog className="text-green-700" />

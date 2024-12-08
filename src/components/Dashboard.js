@@ -22,7 +22,7 @@ const Dashboard = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [activeUsersCount, setActiveUsersCount] = useState(0);
-  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false); // State for showing all announcements
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
 
   const data = {
     labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Hogs'],
@@ -164,7 +164,7 @@ const Dashboard = () => {
                   <div className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-md shadow-md">
                     <h4 className="text-sm text-black-700">{announcements[0].text}</h4>
                     <p className="text-sm text-gray-500">
-                      {announcements[0].date}  {announcements[0].time}
+                      {announcements[0].date} {announcements[0].time}
                     </p>
                   </div>
                 ) : (
@@ -184,7 +184,7 @@ const Dashboard = () => {
                         <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-md shadow-md">
                           <h4 className="text-sm text-black-700">{announcement.text}</h4>
                           <p className="text-sm text-gray-500">
-                            {announcement.date}  {announcement.time}
+                            {announcement.date} {announcement.time}
                           </p>
                         </li>
                       ))}
