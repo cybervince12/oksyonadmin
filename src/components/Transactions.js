@@ -13,9 +13,9 @@ const Transactions = () => {
       try {
         let statusFilter;
         if (activeTab === 'Pending') {
-          statusFilter = ['AVAILABLE', 'PENDING'];
+          statusFilter = ['PENDING'];
         } else if (activeTab === 'Ongoing') {
-          statusFilter = ['AUCTION_ONGOING'];
+          statusFilter = ['AVAILABLE'];
         } else if (activeTab === 'Finished') {
           statusFilter = ['AUCTION_ENDED', 'SOLD'];
         }

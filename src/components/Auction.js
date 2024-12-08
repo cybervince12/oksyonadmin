@@ -12,27 +12,30 @@ const Auction = () => {
       try {
         let dataResponse;
 
+        // Fetch data based on the current page selection
         if (currentPage === 'PNS1') {
           const { data, error } = await supabase.from('pns1_prices').select('*');
           if (error) throw error;
           dataResponse = data;
         } else if (currentPage === 'PNS2') {
-          const { data: animals, error: animalError } = await supabase.from('pns2_animals').select('*');
-          if (animalError) throw animalError;
+          // Fetch livestock data and match it with prices
+          const { data: livestock, error: livestockError } = await supabase.from('pns2_prices').select('*');
+          if (livestockError) throw livestockError;
 
-          const animalIds = animals.map((animal) => animal.id);
+          const livestockTypes = livestock.map((livestock) => livestock.livestock);
           const { data: prices, error: priceError } = await supabase
             .from('pns2_prices')
             .select('*')
-            .in('animal_id', animalIds);
+            .in('livestock', livestockTypes); // Filter based on livestock type
 
           if (priceError) throw priceError;
 
-          dataResponse = animals.map((animal) => ({
-            animal: animal.animal,
-            weightRange: animal.weight_range,
+          // Organizing the data: group prices by livestock
+          dataResponse = livestock.map((livestock) => ({
+            livestock: livestock.livestock,
+            weightRange: livestock.weight_range,
             prices: prices
-              .filter((price) => price.animal_id === animal.id)
+              .filter((price) => price.livestock === livestock.livestock)
               .map((price) => ({ id: price.id, label: price.label, value: price.price || '' })),
           }));
         } else if (currentPage === 'PNS3') {
@@ -41,16 +44,17 @@ const Auction = () => {
           dataResponse = data;
         }
 
+        // Organize data for PNS1 and PNS3 where prices are listed by weight range and livestock
         if (currentPage === 'PNS1' || currentPage === 'PNS3') {
           const organizedData = dataResponse.reduce((acc, item) => {
-            const { animal, weight_range, label, id, price } = item;
-            const existingAnimal = acc.find((a) => a.animal === animal);
+            const { livestock, weight_range, label, id, price } = item;
+            const existingLivestock = acc.find((a) => a.livestock === livestock);
 
-            if (existingAnimal) {
-              existingAnimal.prices.push({ id, label, value: price || '' });
+            if (existingLivestock) {
+              existingLivestock.prices.push({ id, label, value: price || '' });
             } else {
               acc.push({
-                animal,
+                livestock,
                 weightRange: weight_range,
                 prices: [{ id, label, value: price || '' }],
               });
@@ -92,7 +96,6 @@ const Auction = () => {
       // Save the updates based on the current page
       for (const update of updates) {
         if (currentPage === 'PNS1' || currentPage === 'PNS3') {
-          // For PNS1 and PNS3, we are updating the price in the pns1_prices or pns3_prices table
           const { error } = await supabase
             .from(currentPage === 'PNS1' ? 'pns1_prices' : 'pns3_prices')
             .update({ price: update.price })
@@ -104,7 +107,6 @@ const Auction = () => {
             return;
           }
         } else if (currentPage === 'PNS2') {
-          // For PNS2, updating the price in the pns2_prices table
           const { error } = await supabase
             .from('pns2_prices')
             .update({ price: update.price })
@@ -158,7 +160,7 @@ const Auction = () => {
                 {auctionData.map((item, index) => (
                   <React.Fragment key={index}>
                     <tr className="bg-gray-50 border-b">
-                      <td className="p-3 font-semibold">{item.animal}</td>
+                      <td className="p-3 font-semibold">{item.livestock}</td>
                       <td className="p-3 text-gray-700">{item.weightRange}</td>
                       <td className="p-3">
                         {item.prices.map((price, priceIndex) => (
