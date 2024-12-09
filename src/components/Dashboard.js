@@ -25,7 +25,7 @@ const Dashboard = () => {
   const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
 
   const data = {
-    labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Hogs'],
+    labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig'],
     datasets: [
       {
         label: 'Weekly Dashboard',

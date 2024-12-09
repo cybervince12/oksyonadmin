@@ -132,7 +132,8 @@ const Auction = () => {
     return (
       <div className="p-6 bg-gray-100 flex-grow">
         <div className="bg-white shadow-lg rounded-lg p-6">
-          <div className="flex justify-center space-x-4 mb-6">
+          {/* Navigation Buttons */}
+          <div className="flex flex-wrap justify-center space-x-4 mb-6">
             {['PNS1', 'PNS2', 'PNS3'].map((page) => (
               <button
                 key={page}
@@ -147,8 +148,10 @@ const Auction = () => {
               </button>
             ))}
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full border border-gray-300">
+  
+          {/* Table Content */}
+          <div className="overflow-auto">
+            <table className="table-auto sm:table-fixed w-full border border-gray-300">
               <thead>
                 <tr className="bg-green-700 text-white">
                   <th className="p-3 border">Species</th>
@@ -171,7 +174,7 @@ const Auction = () => {
                               name="value"
                               value={price.value}
                               onChange={(e) => handleInputChange(e, index, priceIndex)}
-                              className="ml-2 border p-1 rounded"
+                              className="ml-2 border p-1 rounded w-full sm:w-auto"
                               disabled={!isEditable}
                             />
                           </div>
@@ -183,17 +186,19 @@ const Auction = () => {
               </tbody>
             </table>
           </div>
-          <div className="flex justify-end mt-6 space-x-4">
+  
+          {/* Action Buttons */}
+          <div className="flex flex-wrap justify-end mt-6 space-x-4">
             <button
               onClick={handleEditToggle}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg"
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               {isEditable ? 'Cancel Edit' : 'Edit'}
             </button>
             {isEditable && (
               <button
                 onClick={handleSave}
-                className="px-6 py-2 bg-green-500 text-white rounded-lg"
+                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Save
               </button>
@@ -203,6 +208,7 @@ const Auction = () => {
       </div>
     );
   };
+  
 
   return (
     <div>

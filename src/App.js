@@ -9,7 +9,6 @@ import Auction from './components/Auction';
 import TransactionReports from './components/TransactionReports';
 import FullReport from './components/FullReport';
 import Login from './components/Login'; 
-import Inbox from './components/Inbox';
 import './index.css';
 
 function App() {
@@ -23,7 +22,6 @@ function App() {
             <Route path="transactions" element={<Transactions />} />
             <Route path="users" element={<Users />} />
             <Route path="auction" element={<Auction />} />
-            <Route path="inbox" element={<Inbox />} />
             <Route path="transaction-reports" element={<TransactionReports />} />
             <Route path="full-report" element={<FullReport />} />
           </Route>

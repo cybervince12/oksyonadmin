@@ -7,114 +7,126 @@ import { CSVLink } from 'react-csv';
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('Pending');
+  const [errorMessage, setErrorMessage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState([]);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
-  const transactionsPerPage = 10;
+  const pageLimit = 10;
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        let statusFilterQuery = [];
+        let statusFilter;
         if (activeTab === 'Pending') {
           statusFilter = ['PENDING'];
         } else if (activeTab === 'Ongoing') {
           statusFilter = ['AVAILABLE'];
         } else if (activeTab === 'Finished') {
-          statusFilterQuery = ['AUCTION_ENDED', 'SOLD'];
+          statusFilter = ['AUCTION_ENDED', 'SOLD'];
         }
 
-        const { data, error } = await supabase
-          .from('livestock')
-          .select('*')
-          .in('status', statusFilterQuery);
+        let query = supabase.from('livestock').select('*').in('status', statusFilter);
 
+        if (categoryFilter) {
+          query = query.eq('category', categoryFilter);
+        }
+
+        if (startDate) {
+          query = query.gte('auction_start', startDate);
+        }
+        if (endDate) {
+          query = query.lte('auction_end', endDate);
+        }
+
+        const { data, error } = await query;
         if (error) {
           console.error('Error fetching livestock:', error);
+          setErrorMessage('Failed to fetch livestock. Please try again later.');
         } else {
-          setTransactions(data);
+         
+          let filteredData = data.filter((transaction) =>
+            transaction.livestock_id.includes(searchQuery) ||
+            transaction.category.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+
+          filteredData.sort((a, b) => {
+            const dateA = new Date(a.auction_start);
+            const dateB = new Date(b.auction_start);
+            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+          });
+
+          setTransactions(filteredData);
+          setErrorMessage(null);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
+        setErrorMessage('An unexpected error occurred while fetching livestock.');
       }
     };
 
     fetchTransactions();
-  }, [activeTab]);
+  }, [activeTab, searchQuery, categoryFilter, startDate, endDate, sortOrder]);
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch =
-      transaction.livestock_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !categoryFilter || transaction.category === categoryFilter;
-    const matchesStatus =
-      statusFilter.length === 0 || statusFilter.includes(transaction.status);
-
-    const auctionStart = new Date(transaction.auction_start);
-    const matchesDateRange =
-      (!startDate || auctionStart >= new Date(startDate)) &&
-      (!endDate || auctionStart <= new Date(endDate));
-
-    return matchesSearch && matchesCategory && matchesStatus && matchesDateRange;
-  });
-
-  const sortedTransactions = [...filteredTransactions].sort((a, b) => {
-    const fieldA = a.auction_start;
-    const fieldB = b.auction_start;
-
-    if (sortOrder === 'asc') {
-      return new Date(fieldA) - new Date(fieldB);
-    } else {
-      return new Date(fieldB) - new Date(fieldA);
-    }
-  });
-
-  const currentTransactions = sortedTransactions.slice(
-    (currentPage - 1) * transactionsPerPage,
-    currentPage * transactionsPerPage
-  );
-
-  const handleApproveDisapprove = async (id, currentStatus) => {
-    let newStatus;
-  
-    if (currentStatus === 'AVAILABLE') {
-      newStatus = 'AUCTION_ONGOING'; // Moves to Ongoing
-    } else if (currentStatus === 'PENDING') {
-      newStatus = 'AVAILABLE'; // Back to Available
-    } else {
-      return; // Exit for unsupported status transitions
-    }
-  
+  const handleApprove = async (id) => {
     try {
       const { error } = await supabase
         .from('livestock')
-        .update({ status: newStatus })
+        .update({ status: 'AVAILABLE' })
         .eq('livestock_id', id);
   
       if (error) {
-        console.error('Error updating livestock status:', error);
+        console.error('Error approving livestock:', error);
+        setErrorMessage('Failed to approve livestock. Please try again.');
       } else {
         setTransactions(
           transactions.map((transaction) =>
-            transaction.livestock_id === id ? { ...transaction, status: newStatus } : transaction
+            transaction.livestock_id === id ? { ...transaction, status: 'AVAILABLE' } : transaction
           )
         );
       }
     } catch (error) {
-      console.error('Unexpected error during approval/disapproval:', error);
+      console.error('Unexpected error during approval:', error);
+      setErrorMessage('An unexpected error occurred while approving livestock.');
     }
   };
   
+  const handleDisapprove = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('livestock')
+        .update({ status: 'Disapprove' }) 
+        .eq('livestock_id', id);
+  
+      if (error) {
+        console.error('Error disapproving livestock:', error);
+        setErrorMessage('Failed to disapprove livestock. Please try again.');
+      } else {
+       
+        setTransactions(
+          transactions.map((transaction) =>
+            transaction.livestock_id === id ? { ...transaction, status: 'Disapprove' } : transaction
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Unexpected error during disapproval:', error);
+      setErrorMessage('An unexpected error occurred while disapproving livestock.');
+    }
+  };
+  
+  
   const renderTransactions = () => {
-    if (currentTransactions.length === 0) {
-      return <p>No transactions available.</p>;
+    const startIndex = (currentPage - 1) * pageLimit;
+    const paginatedData = transactions.slice(startIndex, startIndex + pageLimit);
+
+    if (paginatedData.length === 0) {
+      return <p>No transactions available for this tab.</p>;
     }
 
-    return currentTransactions.map((transaction, index) => (
+    return paginatedData.map((transaction, index) => (
       <tr
         key={index}
         className={`border-t hover:bg-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
@@ -126,8 +138,13 @@ const Transactions = () => {
         <td className="p-3 text-sm">{transaction.gender}</td>
         <td className="p-3 text-sm">{transaction.weight}</td>
         <td className="p-3 text-sm">{transaction.starting_price}</td>
-        <td className="p-3 text-sm">{format(new Date(transaction.auction_start), 'MM/dd/yyyy hh:mm a')}</td>
-        <td className="p-3 text-sm">{format(new Date(transaction.auction_end), 'MM/dd/yyyy hh:mm a')}</td>
+        <td className="p-3 text-sm">{transaction.current_bid}</td>
+        <td className="p-3 text-sm">
+          {format(new Date(transaction.auction_start), 'MM/dd/yyyy hh:mm a')}
+        </td>
+        <td className="p-3 text-sm">
+          {format(new Date(transaction.auction_end), 'MM/dd/yyyy hh:mm a')}
+        </td>
         <td className="p-3 text-sm">
           <span
             className={`py-1 px-3 rounded text-sm ${
@@ -146,152 +163,162 @@ const Transactions = () => {
         <td className="p-3 text-sm">{transaction.location}</td>
         <td className="p-3 text-sm">
           {transaction.proof_of_ownership_url ? (
-            <a href={transaction.proof_of_ownership_url} target="_blank" rel="noopener noreferrer">Proof</a>
+            <a href={transaction.proof_of_ownership_url} target="_blank" rel="noopener noreferrer">
+              Proof
+            </a>
           ) : (
             'Not Available'
           )}
         </td>
         <td className="p-3 text-sm">
           {transaction.vet_certificate_url ? (
-            <a href={transaction.vet_certificate_url} target="_blank" rel="noopener noreferrer">Vet Cert</a>
+            <a href={transaction.vet_certificate_url} target="_blank" rel="noopener noreferrer">
+              Vet Cert
+            </a>
           ) : (
             'Not Available'
           )}
         </td>
         <td className="p-3 text-sm">
-          {activeTab !== 'Finished' && (
-            <button
-            onClick={() => handleApproveDisapprove(transaction.livestock_id, transaction.status)}
-            className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600`}
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleApprove(transaction.livestock_id)}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
           >
-            {transaction.status === 'AVAILABLE' ? 'Approve' : 'Disapprove'}
+            Approve
           </button>
-          )}
-        </td>
+          <button
+            onClick={() => handleDisapprove(transaction.livestock_id)}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Disapprove
+          </button>
+        </div>
+      </td>
       </tr>
     ));
   };
 
+  // Calculate total pages
+  const totalPages = Math.ceil(transactions.length / pageLimit);
+
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-  <TopHeader title="Transactions" />
-  <div className="p-6 bg-white shadow-md rounded-lg flex-grow">
-    <div className="flex flex-wrap mb-4 border-b border-gray-300">
-      <button
-        onClick={() => setActiveTab('Pending')}
-        className={`px-4 py-2 ${activeTab === 'Pending' ? 'border-b-2 border-yellow-600 font-semibold text-yellow-600' : 'text-gray-500'} rounded-md`}
-      >
-        Pending Transaction
-      </button>
-      <button
-        onClick={() => setActiveTab('Ongoing')}
-        className={`px-4 py-2 ${activeTab === 'Ongoing' ? 'border-b-2 border-green-600 font-semibold text-green-600' : 'text-gray-500'} rounded-md`}
-      >
-        Ongoing Transaction
-      </button>
-      <button
-        onClick={() => setActiveTab('Finished')}
-        className={`px-4 py-2 ${activeTab === 'Finished' ? 'border-b-2 border-red-600 font-semibold text-red-600' : 'text-gray-500'} rounded-md`}
-      >
-        Finished Transaction
-      </button>
+    <div className="h-screen flex flex-col">
+      <TopHeader title="Transactions" />
+      <div className="p-6 bg-gray-100 flex-grow">
+        <div className="flex mb-4 border-b">
+          <button
+            onClick={() => setActiveTab('Pending')}
+            className={`px-4 py-2 ${activeTab === 'Pending' ? 'border-b-2 border-yellow-500 font-bold' : ''}`}
+          >
+            Pending Transaction
+          </button>
+          <button
+            onClick={() => setActiveTab('Ongoing')}
+            className={`px-4 py-2 ${activeTab === 'Ongoing' ? 'border-b-2 border-green-500 font-bold' : ''}`}
+          >
+            Ongoing Transaction
+          </button>
+          <button
+            onClick={() => setActiveTab('Finished')}
+            className={`px-4 py-2 ${activeTab === 'Finished' ? 'border-b-2 border-red-500 font-bold' : ''}`}
+          >
+            Finished Transaction
+          </button>
+        </div>
+        {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
+        <div className="flex space-x-4 mb-4">
+          <input
+            type="text"
+            className="border border-gray-300 rounded-lg p-1 w-40"
+            placeholder="Search by ID or Category"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg p-1 w-32"
+          >
+            <option value="">All Categories</option>
+            <option value="Cattle">Cattle</option>
+            <option value="Pig">Pig</option>
+            <option value="Goat">Goat</option>
+            <option value="Carabao">Carabao</option>
+            <option value="Horse">Horse</option>
+            <option value="Sheep">Sheep</option>
+          </select>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border border-gray-300 rounded-lg p-1 w-40"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border border-gray-300 rounded-lg p-1 w-40"
+          />
+          <button
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="px-4 py-2 bg-gray-200 rounded"
+          >
+            Sort by Date ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
+          </button>
+          <CSVLink
+            data={transactions}
+            filename="transactions.csv"
+            className="px-4 py-2 bg-green-500 text-white rounded"
+          >
+            Export to CSV
+          </CSVLink>
+        </div>
+        <table className="min-w-full border-collapse">
+          <thead>
+            <tr className="bg-green-800 text-white">
+              <th className="p-3 text-sm text-left">Livestock ID</th>
+              <th className="p-3 text-sm text-left">Category</th>
+              <th className="p-3 text-sm text-left">Breed</th>
+              <th className="p-3 text-sm text-left">Age</th>
+              <th className="p-3 text-sm text-left">Gender</th>
+              <th className="p-3 text-sm text-left">Weight</th>
+              <th className="p-3 text-sm text-left">Starting Price</th>
+              <th className="p-3 text-sm text-left">Current Bid</th>
+              <th className="p-3 text-sm text-left">Auction Start</th>
+              <th className="p-3 text-sm text-left">Auction End</th>
+              <th className="p-3 text-sm text-left">Status</th>
+              <th className="p-3 text-sm text-left">Location</th>
+              <th className="p-3 text-sm text-left">Proof of Ownership</th>
+              <th className="p-3 text-sm text-left">Vet Certificate</th>
+              <th className="p-3 text-sm text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {renderTransactions()}
+          </tbody>
+        </table>
+        <div className="flex justify-between items-center mt-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
-
-    <div className="flex flex-wrap mb-4 space-x-4">
-  {/* Filters Section */}
-  <div className="flex space-x-4">
-    <input
-      type="text"
-      className="border border-gray-300 rounded-lg p-1 w-40"
-      placeholder="Search by ID or Category"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-    />
-    <select
-      value={categoryFilter}
-      onChange={(e) => setCategoryFilter(e.target.value)}
-      className="border border-gray-300 rounded-lg p-1 w-32"
-    >
-      <option value="">All Categories</option>
-      <option value="Cattle">Cattle</option>
-      <option value="Sheep">Sheep</option>
-      <option value="Carabao">Carabao</option>
-      <option value="Horse">Horse</option>
-      <option value="Pig">Pig</option>
-      <option value="Goat">Goat</option>
-    </select>
-  
-    <input
-      type="date"
-      className="border border-gray-300 rounded-lg p-1 w-32"
-      onChange={(e) => setStartDate(e.target.value)}
-      value={startDate}
-    />
-    <input
-      type="date"
-      className="border border-gray-300 rounded-lg p-1 w-32"
-      onChange={(e) => setEndDate(e.target.value)}
-      value={endDate}
-    />
-  </div>
-
-  {/* Action Buttons */}
-  <div className="flex space-x-2 mt-4">
-    <button
-      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-      className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition"
-    >
-      Sort by Date {sortOrder === 'asc' ? '▲' : '▼'}
-    </button>
-    <CSVLink data={transactions} filename="transactions.csv">
-      <button className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition">
-        Export to CSV
-      </button>
-    </CSVLink>
-  </div>
-</div>
-
-    {/* Transactions Table */}
-    <table className="table-auto w-full border-collapse mt-4">
-      <thead className="bg-green-800 text-white">
-        <tr>
-          <th className="p-3 text-left">ID</th>
-          <th className="p-3 text-left">Category</th>
-          <th className="p-3 text-left">Breed</th>
-          <th className="p-3 text-left">Age</th>
-          <th className="p-3 text-left">Gender</th>
-          <th className="p-3 text-left">Weight</th>
-          <th className="p-3 text-left">Starting Price</th>
-          <th className="p-3 text-left">Auction Start</th>
-          <th className="p-3 text-left">Auction End</th>
-          <th className="p-3 text-left">Status</th>
-          <th className="p-3 text-left">Location</th>
-          <th className="p-3 text-left">Proof of Ownership</th>
-          <th className="p-3 text-left">Vet Certificate</th>
-          <th className="p-3 text-left">Actions</th>
-        </tr>
-      </thead>
-      <tbody>{renderTransactions()}</tbody>
-    </table>
-
-    {/* Pagination */}
-    <div className="flex justify-between mt-4">
-      <button
-        onClick={() => setCurrentPage(currentPage > 1 ? currentPage - 1 : 1)}
-        className="px-4 py-2 bg-green-500 rounded-lg hover:bg-green-400 text-white"
-      >
-        Prev
-      </button>
-      <button
-        onClick={() => setCurrentPage(currentPage + 1)}
-        className="px-4 py-2 bg-green-500 rounded-lg hover:bg-green-400 text-white"
-      >
-        Next
-      </button>
-    </div>
-  </div>
-</div>
-
   );
 };
 
