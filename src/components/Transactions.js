@@ -199,7 +199,6 @@ const Transactions = () => {
     ));
   };
 
-  // Calculate total pages
   const totalPages = Math.ceil(transactions.length / pageLimit);
 
   return (
@@ -211,13 +210,13 @@ const Transactions = () => {
             onClick={() => setActiveTab('Pending')}
             className={`px-4 py-2 ${activeTab === 'Pending' ? 'border-b-2 border-yellow-500 font-bold' : ''}`}
           >
-            Pending Transaction
+            Pending Auctions
           </button>
           <button
             onClick={() => setActiveTab('Ongoing')}
             className={`px-4 py-2 ${activeTab === 'Ongoing' ? 'border-b-2 border-green-500 font-bold' : ''}`}
           >
-            Ongoing Transaction
+            Ongoing Auctions
           </button>
           <button
             onClick={() => setActiveTab('Finished')}
