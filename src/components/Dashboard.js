@@ -22,7 +22,10 @@ const Dashboard = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [activeUsersCount, setActiveUsersCount] = useState(0);
-  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false); // State for showing all announcements
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+  const [upcomingAuctions, setUpcomingAuctions] = useState(0);
+  const [liveAuctions, setLiveAuctions] = useState(0);
+  const [completedTransactions, setCompletedTransactions] = useState(0);
 
   const data = {
     labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Hogs'],
@@ -81,6 +84,30 @@ const Dashboard = () => {
     fetchProfilesCount();
   }, []);
 
+  useEffect(() => {
+    const fetchAuctionData = async () => {
+      const { data, error } = await supabase
+        .from('livestock') // Assuming 'livestock' is the correct table name for auction data
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching auction data:', error.message);
+        setErrorMessage('Failed to fetch auction data. Please try again later.');
+      } else {
+        // Count the auctions based on their status
+        const pendingCount = data.filter((livestock) => livestock.status === 'PENDING').length;
+        const availableCount = data.filter((livestock) => livestock.status === 'AVAILABLE').length;
+        const soldCount = data.filter((livestock) => livestock.status === 'SOLD').length;
+
+        setUpcomingAuctions(pendingCount); // Set the count for Upcoming Auctions (PENDING)
+        setLiveAuctions(availableCount); // Set the count for Live Auctions (AVAILABLE)
+        setCompletedTransactions(soldCount); // Set the count for Completed Transactions (SOLD)
+      }
+    };
+
+    fetchAuctionData();
+  }, []);
+
   const handleSaveAnnouncement = async () => {
     if (!announcementText || !announcementDate || !announcementTime) {
       console.error('All fields must be filled');
@@ -132,9 +159,9 @@ const Dashboard = () => {
               <h2 className="font-semibold text-lg mb-4 text-green-800">Key Metrics</h2>
               <ul className="space-y-2">
                 <li>Active Users: <span className="font-bold">{activeUsersCount}</span></li>
-                <li>Upcoming Auctions: <span className="font-bold">120</span></li>
-                <li>Live Auctions: <span className="font-bold">80</span></li>
-                <li>Completed Transactions: <span className="font-bold">100</span></li>
+                <li>Upcoming Auctions: <span className="font-bold">{upcomingAuctions}</span></li>
+                <li>Live Auctions: <span className="font-bold">{liveAuctions}</span></li>
+                <li>Completed Transactions: <span className="font-bold">{completedTransactions}</span></li>
               </ul>
             </div>
 
@@ -181,11 +208,9 @@ const Dashboard = () => {
                     <h3 className="font-semibold text-lg text-green-800 mb-4">All Announcements:</h3>
                     <ul className="space-y-2">
                       {announcements.map((announcement, index) => (
-                        <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-md shadow-md">
-                          <h4 className="text-sm text-black-700">{announcement.text}</h4>
-                          <p className="text-sm text-gray-500">
-                            {announcement.date}  {announcement.time}
-                          </p>
+                        <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-2 rounded-md shadow-sm">
+                          <p>{announcement.text}</p>
+                          <p className="text-xs text-gray-500">{announcement.date} {announcement.time}</p>
                         </li>
                       ))}
                     </ul>
@@ -195,61 +220,64 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {showAnnouncementForm && (
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold text-lg text-green-800">Add New Announcement</h2>
-                <button
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => setShowAnnouncementForm(false)}
-                >
-                  CLOSE
-                </button>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Date:</label>
-                <input
-                  type="date"
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                  value={announcementDate}
-                  onChange={(e) => setAnnouncementDate(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Time:</label>
-                <input
-                  type="time"
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                  value={announcementTime}
-                  onChange={(e) => setAnnouncementTime(e.target.value)}
-                />
-              </div>
-              <textarea
-                className="w-full p-2 mt-2 border border-gray-300 rounded-lg"
-                rows="4"
-                placeholder="Write your announcement here..."
-                value={announcementText}
-                onChange={(e) => setAnnouncementText(e.target.value)}
-              />
-              <div className="flex justify-between items-center mt-4">
-                <button
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg"
-                  onClick={handleSaveAnnouncement}
-                >
-                  Save Announcement
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-white shadow-md rounded-lg p-4 mt-6">
-            <h2 className="text-2xl font-bold">Weekly Dashboard - Livestock Sold</h2>
-            <p className="text-gray-500">14/04/2024 - 20/04/2024</p>
-            <div className="h-96">
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <h2 className="font-semibold text-lg mb-4 text-green-800">Weekly Summary</h2>
+            <div className="h-64">
               <Bar data={data} options={options} />
             </div>
           </div>
         </div>
+
+        {showAnnouncementForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-full md:w-1/3">
+              <h2 className="font-semibold text-xl text-green-800 mb-4">Create Announcement</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Announcement Text</label>
+                  <input
+                    type="text"
+                    value={announcementText}
+                    onChange={(e) => setAnnouncementText(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Date</label>
+                  <input
+                    type="date"
+                    value={announcementDate}
+                    onChange={(e) => setAnnouncementDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Time</label>
+                  <input
+                    type="time"
+                    value={announcementTime}
+                    onChange={(e) => setAnnouncementTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div className="flex justify-end space-x-4 mt-4">
+                  <button
+                    onClick={() => setShowAnnouncementForm(false)}
+                    className="text-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveAnnouncement}
+                    className="bg-green-500 text-white px-4 py-2 rounded-md"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -36,7 +36,7 @@ const Auction = () => {
             weightRange: livestock.weight_range,
             prices: prices
               .filter((price) => price.livestock === livestock.livestock)
-              .map((price) => ({ id: price.id, label: price.label, value: price.price || '' })),
+              .map((price) => ({ id: price.id, label: price.label, price_min: price.price_min || '', price_max: price.price_max || '' })),
           }));
         } else if (currentPage === 'PNS3') {
           const { data, error } = await supabase.from('pns3_prices').select('*');
@@ -47,20 +47,20 @@ const Auction = () => {
         // Organize data for PNS1 and PNS3 where prices are listed by weight range and livestock
         if (currentPage === 'PNS1' || currentPage === 'PNS3') {
           const organizedData = dataResponse.reduce((acc, item) => {
-            const { livestock, weight_range, label, id, price } = item;
+            const { livestock, weight_range, label, id, price_min, price_max } = item;
             const existingLivestock = acc.find((a) => a.livestock === livestock);
 
             if (existingLivestock) {
-              existingLivestock.prices.push({ id, label, value: price || '' });
+              existingLivestock.prices.push({ id, label, price_min, price_max });
             } else {
               acc.push({
                 livestock,
                 weightRange: weight_range,
-                prices: [{ id, label, value: price || '' }],
+                prices: [{ id, label, price_min, price_max }],
               });
             }
             return acc;
-          }, []);
+          }, []); 
           setAuctionData(organizedData);
         } else {
           setAuctionData(dataResponse);
@@ -77,10 +77,10 @@ const Auction = () => {
     setIsEditable(!isEditable);
   };
 
-  const handleInputChange = (e, index, priceIndex) => {
-    const { name, value } = e.target;
+  const handleInputChange = (e, index, priceIndex, field) => {
+    const { value } = e.target;
     const updatedData = [...auctionData];
-    updatedData[index].prices[priceIndex][name] = value;
+    updatedData[index].prices[priceIndex][field] = value;
     setAuctionData(updatedData);
   };
 
@@ -89,7 +89,8 @@ const Auction = () => {
       const updates = auctionData.flatMap((item) =>
         item.prices.map((price) => ({
           id: price.id,
-          price: price.value,
+          price_min: price.price_min,
+          price_max: price.price_max,
         }))
       );
 
@@ -98,7 +99,10 @@ const Auction = () => {
         if (currentPage === 'PNS1' || currentPage === 'PNS3') {
           const { error } = await supabase
             .from(currentPage === 'PNS1' ? 'pns1_prices' : 'pns3_prices')
-            .update({ price: update.price })
+            .update({
+              price_min: update.price_min,
+              price_max: update.price_max,
+            })
             .eq('id', update.id);
 
           if (error) {
@@ -109,7 +113,10 @@ const Auction = () => {
         } else if (currentPage === 'PNS2') {
           const { error } = await supabase
             .from('pns2_prices')
-            .update({ price: update.price })
+            .update({
+              price_min: update.price_min,
+              price_max: update.price_max,
+            })
             .eq('id', update.id);
 
           if (error) {
@@ -137,11 +144,7 @@ const Auction = () => {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`px-6 py-2 font-semibold rounded-lg ${
-                  currentPage === page
-                    ? 'bg-green-700 text-white shadow-md'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200'
-                }`}
+                className={`px-6 py-2 font-semibold rounded-lg ${currentPage === page ? 'bg-green-700 text-white shadow-md' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
               >
                 {page}
               </button>
@@ -168,9 +171,17 @@ const Auction = () => {
                             <span className="font-medium text-gray-700">{price.label}: </span>
                             <input
                               type="text"
-                              name="value"
-                              value={price.value}
-                              onChange={(e) => handleInputChange(e, index, priceIndex)}
+                              name="price_min"
+                              value={price.price_min}
+                              onChange={(e) => handleInputChange(e, index, priceIndex, 'price_min')}
+                              className="ml-2 border p-1 rounded"
+                              disabled={!isEditable}
+                            />
+                            <input
+                              type="text"
+                              name="price_max"
+                              value={price.price_max}
+                              onChange={(e) => handleInputChange(e, index, priceIndex, 'price_max')}
                               className="ml-2 border p-1 rounded"
                               disabled={!isEditable}
                             />
@@ -184,17 +195,11 @@ const Auction = () => {
             </table>
           </div>
           <div className="flex justify-end mt-6 space-x-4">
-            <button
-              onClick={handleEditToggle}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg"
-            >
+            <button onClick={handleEditToggle} className="px-6 py-2 bg-blue-500 text-white rounded-lg">
               {isEditable ? 'Cancel Edit' : 'Edit'}
             </button>
             {isEditable && (
-              <button
-                onClick={handleSave}
-                className="px-6 py-2 bg-green-500 text-white rounded-lg"
-              >
+              <button onClick={handleSave} className="px-6 py-2 bg-green-500 text-white rounded-lg">
                 Save
               </button>
             )}
