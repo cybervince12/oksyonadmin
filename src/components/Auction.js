@@ -60,7 +60,7 @@ const Auction = () => {
               });
             }
             return acc;
-          }, []); 
+          }, []);
           setAuctionData(organizedData);
         } else {
           setAuctionData(dataResponse);
@@ -174,10 +174,18 @@ const Auction = () => {
                             <span className="font-medium text-gray-700">{price.label}: </span>
                             <input
                               type="text"
-                              name="value"
-                              value={price.value}
-                              onChange={(e) => handleInputChange(e, index, priceIndex)}
+                              name="price_min"
+                              value={price.price_min}
+                              onChange={(e) => handleInputChange(e, index, priceIndex, 'price_min')}
                               className="ml-2 border p-1 rounded"
+                              disabled={!isEditable}
+                            />
+                            <input
+                              type="text"
+                              name="price_max"
+                              value={price.price_max}
+                              onChange={(e) => handleInputChange(e, index, priceIndex, 'price_max')}
+                              className="ml-2 border p-1 rounded w-full sm:w-auto"
                               disabled={!isEditable}
                             />
                           </div>
@@ -189,17 +197,19 @@ const Auction = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Action Buttons */}
           <div className="flex justify-end mt-6 space-x-4">
             <button
               onClick={handleEditToggle}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg"
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               {isEditable ? 'Cancel Edit' : 'Edit'}
             </button>
             {isEditable && (
               <button
                 onClick={handleSave}
-                className="px-6 py-2 bg-green-500 text-white rounded-lg"
+                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Save
               </button>
@@ -209,7 +219,6 @@ const Auction = () => {
       </div>
     );
   };
-  
 
   return (
     <div>

@@ -23,12 +23,10 @@ const Dashboard = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [activeUsersCount, setActiveUsersCount] = useState(0);
   const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
-<<<<<<< HEAD
+
   const [upcomingAuctions, setUpcomingAuctions] = useState(0);
   const [liveAuctions, setLiveAuctions] = useState(0);
   const [completedTransactions, setCompletedTransactions] = useState(0);
-=======
->>>>>>> 420f61367539285b7874ac3ad43e9264801f5d1f
 
   const data = {
     labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig'],
@@ -211,17 +209,9 @@ const Dashboard = () => {
                     <h3 className="font-semibold text-lg text-green-800 mb-4">All Announcements:</h3>
                     <ul className="space-y-2">
                       {announcements.map((announcement, index) => (
-<<<<<<< HEAD
                         <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-2 rounded-md shadow-sm">
                           <p>{announcement.text}</p>
                           <p className="text-xs text-gray-500">{announcement.date} {announcement.time}</p>
-=======
-                        <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-md shadow-md">
-                          <h4 className="text-sm text-black-700">{announcement.text}</h4>
-                          <p className="text-sm text-gray-500">
-                            {announcement.date} {announcement.time}
-                          </p>
->>>>>>> 420f61367539285b7874ac3ad43e9264801f5d1f
                         </li>
                       ))}
                     </ul>
@@ -231,61 +221,61 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-4">
-            <h2 className="font-semibold text-lg mb-4 text-green-800">Weekly Summary</h2>
-            <div className="h-64">
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <h2 className="font-semibold text-lg mb-4 text-green-800">Weekly Dashboard</h2>
+            <div className="relative w-full h-64">
               <Bar data={data} options={options} />
             </div>
           </div>
         </div>
 
         {showAnnouncementForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-full md:w-1/3">
-              <h2 className="font-semibold text-xl text-green-800 mb-4">Create Announcement</h2>
-              <div className="space-y-4">
-                <div>
+          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-semibold text-green-800 mb-4">Create New Announcement</h2>
+              <form>
+                <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">Announcement Text</label>
-                  <input
-                    type="text"
+                  <textarea
+                    className="w-full p-2 border border-gray-300 rounded-md"
                     value={announcementText}
                     onChange={(e) => setAnnouncementText(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    rows="4"
                   />
                 </div>
-                <div>
+                <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">Date</label>
                   <input
+                    className="w-full p-2 border border-gray-300 rounded-md"
                     type="date"
                     value={announcementDate}
                     onChange={(e) => setAnnouncementDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   />
                 </div>
-                <div>
+                <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">Time</label>
                   <input
+                    className="w-full p-2 border border-gray-300 rounded-md"
                     type="time"
                     value={announcementTime}
                     onChange={(e) => setAnnouncementTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   />
                 </div>
-                <div className="flex justify-end space-x-4 mt-4">
-                  <button
-                    onClick={() => setShowAnnouncementForm(false)}
-                    className="text-gray-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveAnnouncement}
-                    className="bg-green-500 text-white px-4 py-2 rounded-md"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
+                <button
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                  type="button"
+                  onClick={handleSaveAnnouncement}
+                >
+                  Save
+                </button>
+                <button
+                  className="ml-4 text-gray-600"
+                  type="button"
+                  onClick={() => setShowAnnouncementForm(false)}
+                >
+                  Cancel
+                </button>
+              </form>
             </div>
           </div>
         )}
