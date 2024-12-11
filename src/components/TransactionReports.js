@@ -58,13 +58,13 @@ const TransactionReports = () => {
             <div className="bg-white shadow-lg rounded-lg p-6 mt-6">
               <p className="font-bold text-lg text-gray-800">Income</p>
               <p className="text-sm text-gray-500">Jan 01 - Dec 31</p>
-              {/* Placeholder for the chart */}
+              {/* Placeholder for chart */}
               <div className="bg-gray-200 h-32 mt-4 flex items-center justify-center">
                 <p>Chart Placeholder</p>
               </div>
               <button
                 className="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded"
-                onClick={() => navigate('/admin/full-report')} // Navigate to the Full Report page
+                onClick={() => navigate('/admin/full-report')}
               >
                 View full report
               </button>
@@ -110,8 +110,6 @@ const TransactionReports = () => {
             </div>
           </div>
         </div>
-
-        {/* Full Report Data removed, as this will now be displayed in FullReport component */}
       </div>
     </div>
   );

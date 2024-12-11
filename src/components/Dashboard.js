@@ -23,12 +23,15 @@ const Dashboard = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [activeUsersCount, setActiveUsersCount] = useState(0);
   const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+<<<<<<< HEAD
   const [upcomingAuctions, setUpcomingAuctions] = useState(0);
   const [liveAuctions, setLiveAuctions] = useState(0);
   const [completedTransactions, setCompletedTransactions] = useState(0);
+=======
+>>>>>>> 420f61367539285b7874ac3ad43e9264801f5d1f
 
   const data = {
-    labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Hogs'],
+    labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig'],
     datasets: [
       {
         label: 'Weekly Dashboard',
@@ -191,7 +194,7 @@ const Dashboard = () => {
                   <div className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-md shadow-md">
                     <h4 className="text-sm text-black-700">{announcements[0].text}</h4>
                     <p className="text-sm text-gray-500">
-                      {announcements[0].date}  {announcements[0].time}
+                      {announcements[0].date} {announcements[0].time}
                     </p>
                   </div>
                 ) : (
@@ -208,9 +211,17 @@ const Dashboard = () => {
                     <h3 className="font-semibold text-lg text-green-800 mb-4">All Announcements:</h3>
                     <ul className="space-y-2">
                       {announcements.map((announcement, index) => (
+<<<<<<< HEAD
                         <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-2 rounded-md shadow-sm">
                           <p>{announcement.text}</p>
                           <p className="text-xs text-gray-500">{announcement.date} {announcement.time}</p>
+=======
+                        <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-md shadow-md">
+                          <h4 className="text-sm text-black-700">{announcement.text}</h4>
+                          <p className="text-sm text-gray-500">
+                            {announcement.date} {announcement.time}
+                          </p>
+>>>>>>> 420f61367539285b7874ac3ad43e9264801f5d1f
                         </li>
                       ))}
                     </ul>
