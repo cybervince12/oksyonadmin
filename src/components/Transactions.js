@@ -26,6 +26,8 @@ const Transactions = () => {
           statusFilter = ['AVAILABLE'];
         } else if (activeTab === 'Finished') {
           statusFilter = ['AUCTION_ENDED', 'SOLD'];
+        } else if (activeTab === 'Disapproved') {
+          statusFilter = ['DISAPPROVED'];
         }
 
         let query = supabase.from('livestock').select('*').in('status', statusFilter);
@@ -46,7 +48,6 @@ const Transactions = () => {
           console.error('Error fetching livestock:', error);
           setErrorMessage('Failed to fetch livestock. Please try again later.');
         } else {
-         
           let filteredData = data.filter((transaction) =>
             transaction.livestock_id.includes(searchQuery) ||
             transaction.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -76,7 +77,7 @@ const Transactions = () => {
         .from('livestock')
         .update({ status: 'AVAILABLE' })
         .eq('livestock_id', id);
-  
+
       if (error) {
         console.error('Error approving livestock:', error);
         setErrorMessage('Failed to approve livestock. Please try again.');
@@ -92,22 +93,21 @@ const Transactions = () => {
       setErrorMessage('An unexpected error occurred while approving livestock.');
     }
   };
-  
+
   const handleDisapprove = async (id) => {
     try {
       const { error } = await supabase
         .from('livestock')
-        .update({ status: 'Disapprove' }) 
+        .update({ status: 'DISAPPROVED' })
         .eq('livestock_id', id);
-  
+
       if (error) {
         console.error('Error disapproving livestock:', error);
         setErrorMessage('Failed to disapprove livestock. Please try again.');
       } else {
-       
         setTransactions(
           transactions.map((transaction) =>
-            transaction.livestock_id === id ? { ...transaction, status: 'Disapprove' } : transaction
+            transaction.livestock_id === id ? { ...transaction, status: 'DISAPPROVED' } : transaction
           )
         );
       }
@@ -116,8 +116,7 @@ const Transactions = () => {
       setErrorMessage('An unexpected error occurred while disapproving livestock.');
     }
   };
-  
-  
+
   const renderTransactions = () => {
     const startIndex = (currentPage - 1) * pageLimit;
     const paginatedData = transactions.slice(startIndex, startIndex + pageLimit);
@@ -154,6 +153,8 @@ const Transactions = () => {
                 ? 'bg-yellow-500 text-white'
                 : transaction.status === 'AUCTION_ENDED'
                 ? 'bg-red-500 text-white'
+                : transaction.status === 'DISAPPROVED'
+                ? 'bg-gray-500 text-white'
                 : 'bg-gray-500 text-white'
             }`}
           >
@@ -179,22 +180,24 @@ const Transactions = () => {
             'Not Available'
           )}
         </td>
-        <td className="p-3 text-sm">
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleApprove(transaction.livestock_id)}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Approve
-          </button>
-          <button
-            onClick={() => handleDisapprove(transaction.livestock_id)}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Disapprove
-          </button>
-        </div>
-      </td>
+        {activeTab === 'Pending' && (
+          <td className="p-3 text-sm">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleApprove(transaction.livestock_id)}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => handleDisapprove(transaction.livestock_id)}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Disapprove
+              </button>
+            </div>
+          </td>
+        )}
       </tr>
     ));
   };
@@ -222,99 +225,91 @@ const Transactions = () => {
             onClick={() => setActiveTab('Finished')}
             className={`px-4 py-2 ${activeTab === 'Finished' ? 'border-b-2 border-red-500 font-bold' : ''}`}
           >
-            Finished Transaction
+            Finished Auctions
+          </button>
+          <button
+            onClick={() => setActiveTab('Disapproved')}
+            className={`px-4 py-2 ${activeTab === 'Disapproved' ? 'border-b-2 border-gray-500 font-bold' : ''}`}
+          >
+            Disapproved Auctions
           </button>
         </div>
-        {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
-        <div className="flex space-x-4 mb-4">
+
+        <div className="flex mb-4">
           <input
             type="text"
-            className="border border-gray-300 rounded-lg p-1 w-40"
-            placeholder="Search by ID or Category"
+            placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="border p-2 mr-2"
           />
-          <select
+          <input
+            type="text"
+            placeholder="Category Filter"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg p-1 w-32"
-          >
-            <option value="">All Categories</option>
-            <option value="Cattle">Cattle</option>
-            <option value="Pig">Pig</option>
-            <option value="Goat">Goat</option>
-            <option value="Carabao">Carabao</option>
-            <option value="Horse">Horse</option>
-            <option value="Sheep">Sheep</option>
-          </select>
+            className="border p-2 mr-2"
+          />
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="border border-gray-300 rounded-lg p-1 w-40"
+            className="border p-2 mr-2"
           />
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="border border-gray-300 rounded-lg p-1 w-40"
+            className="border p-2"
           />
-          <button
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="px-4 py-2 bg-gray-200 rounded"
-          >
-            Sort by Date ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
-          </button>
-          <CSVLink
-            data={transactions}
-            filename="transactions.csv"
-            className="px-4 py-2 bg-green-500 text-white rounded"
-          >
-            Export to CSV
-          </CSVLink>
         </div>
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr className="bg-green-800 text-white">
-              <th className="p-3 text-sm text-left">Livestock ID</th>
-              <th className="p-3 text-sm text-left">Category</th>
-              <th className="p-3 text-sm text-left">Breed</th>
-              <th className="p-3 text-sm text-left">Age</th>
-              <th className="p-3 text-sm text-left">Gender</th>
-              <th className="p-3 text-sm text-left">Weight</th>
-              <th className="p-3 text-sm text-left">Starting Price</th>
-              <th className="p-3 text-sm text-left">Current Bid</th>
-              <th className="p-3 text-sm text-left">Auction Start</th>
-              <th className="p-3 text-sm text-left">Auction End</th>
-              <th className="p-3 text-sm text-left">Status</th>
-              <th className="p-3 text-sm text-left">Location</th>
-              <th className="p-3 text-sm text-left">Proof of Ownership</th>
-              <th className="p-3 text-sm text-left">Vet Certificate</th>
-              <th className="p-3 text-sm text-left">Actions</th>
+
+        {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
+
+        <table className="w-full table-auto">
+          <thead className="bg-gray-200">
+            <tr>
+              <th className="p-3">ID</th>
+              <th className="p-3">Category</th>
+              <th className="p-3">Breed</th>
+              <th className="p-3">Age</th>
+              <th className="p-3">Gender</th>
+              <th className="p-3">Weight</th>
+              <th className="p-3">Starting Price</th>
+              <th className="p-3">Current Bid</th>
+              <th className="p-3">Start Date</th>
+              <th className="p-3">End Date</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Location</th>
+              <th className="p-3">Ownership Proof</th>
+              <th className="p-3">Vet Cert</th>
+              {activeTab === 'Pending' && <th className="p-3">Actions</th>}
             </tr>
           </thead>
-          <tbody>
-            {renderTransactions()}
-          </tbody>
+          <tbody>{renderTransactions()}</tbody>
         </table>
-        <div className="flex justify-between items-center mt-4">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
+
+        <div className="mt-4 flex justify-between">
+          <div>
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Next
+            </button>
+          </div>
+          <CSVLink data={transactions} filename="transactions.csv" className="px-4 py-2 bg-green-500 text-white rounded">
+            Export to CSV
+          </CSVLink>
         </div>
       </div>
     </div>
