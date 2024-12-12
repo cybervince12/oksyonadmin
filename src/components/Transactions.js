@@ -15,6 +15,27 @@ const Transactions = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const pageLimit = 10;
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('livestock')
+          .select('category')
+          .distinct();
+        if (error) {
+          console.error('Error fetching categories:', error);
+        } else {
+          setCategories(data.map((item) => item.category));
+        }
+      } catch (error) {
+        console.error('Unexpected error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -243,13 +264,26 @@ const Transactions = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="border p-2 mr-2"
           />
-          <input
-            type="text"
-            placeholder="Category Filter"
+          <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="border p-2 mr-2"
-          />
+          >
+            <option value="">All Categories</option>
+            {/* Static category options */}
+            <option value="Cattle">Cattle</option>
+            <option value="Goat">Goat</option>
+            <option value="Pig">Pig</option>
+            <option value="Sheep">Sheep</option>
+            <option value="Sheep">Horse</option>
+            <option value="Sheep">Carabao</option>
+      
+            {categories.map((category, index) => (
+              <option key={index} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
           <input
             type="date"
             value={startDate}
@@ -267,7 +301,7 @@ const Transactions = () => {
         {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
 
         <table className="w-full table-auto">
-          <thead className="bg-gray-200">
+          <thead className="bg-green-800 text-white">
             <tr>
               <th className="p-3">ID</th>
               <th className="p-3">Category</th>

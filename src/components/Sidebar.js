@@ -17,10 +17,10 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="bg-gradient-to-b from-[#257446] to-[#234D35] text-white h-screen fixed top-0 left-0 overflow-y-auto transition-all duration-300 lg:w-64 w-16">
-      <div className="p-4 lg:p-6 flex flex-col items-center lg:items-start">
-        <h2 className="text-sm lg:text-lg font-bold mb-6 hidden lg:block">ADMIN</h2>
-        <ul className="space-y-4 w-full">
+    <aside className="bg-gradient-to-b from-[#257446] to-[#234D35] text-white h-screen fixed top-0 left-0 overflow-y-auto transition-all duration-300 lg:w-64 w-14">
+    <div className="p-2 lg:p-6 flex flex-col items-center lg:items-start">
+    <h2 className="text-xs lg:text-lg font-bold mb-6 hidden lg:block">ADMIN</h2>
+    <ul className="space-y-4 w-full">
           <li>
             <Link
               to="/admin/dashboard"

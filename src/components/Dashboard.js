@@ -23,7 +23,6 @@ const Dashboard = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [activeUsersCount, setActiveUsersCount] = useState(0);
   const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
-
   const [upcomingAuctions, setUpcomingAuctions] = useState(0);
   const [liveAuctions, setLiveAuctions] = useState(0);
   const [completedTransactions, setCompletedTransactions] = useState(0);
@@ -160,9 +159,9 @@ const Dashboard = () => {
               <h2 className="font-semibold text-lg mb-4 text-green-800">Key Metrics</h2>
               <ul className="space-y-2">
                 <li>Active Users: <span className="font-bold">{activeUsersCount}</span></li>
-                <li>Upcoming Auctions: <span className="font-bold">{upcomingAuctions}</span></li>
-                <li>Live Auctions: <span className="font-bold">{liveAuctions}</span></li>
-                <li>Completed Transactions: <span className="font-bold">{completedTransactions}</span></li>
+                <li>Pending Auctions: <span className="font-bold">{upcomingAuctions}</span></li>
+                <li>Ongoing Auctions: <span className="font-bold">{liveAuctions}</span></li>
+                <li>Finished Transactions: <span className="font-bold">{completedTransactions}</span></li>
               </ul>
             </div>
 
