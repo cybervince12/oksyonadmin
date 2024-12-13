@@ -12,7 +12,7 @@ const Transactions = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const pageLimit = 10;
   const [categories, setCategories] = useState([]);
@@ -150,7 +150,8 @@ const Transactions = () => {
       <tr
         key={index}
         className={`border-t hover:bg-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-      >
+      > 
+        <td className="p-3 text-sm">{index + 1}</td>
         <td className="p-3 text-sm">{transaction.livestock_id}</td>
         <td className="p-3 text-sm">{transaction.category}</td>
         <td className="p-3 text-sm">{transaction.breed}</td>
@@ -303,6 +304,7 @@ const Transactions = () => {
         <table className="w-full table-auto">
           <thead className="bg-green-800 text-white">
             <tr>
+              <th className="p-3">#</th>
               <th className="p-3">ID</th>
               <th className="p-3">Category</th>
               <th className="p-3">Breed</th>
