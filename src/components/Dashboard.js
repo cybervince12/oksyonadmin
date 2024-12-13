@@ -27,17 +27,17 @@ const Dashboard = () => {
   const [liveAuctions, setLiveAuctions] = useState(0);
   const [completedTransactions, setCompletedTransactions] = useState(0);
 
-  const data = {
-    labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig'],
+  const [livestockData, setLivestockData] = useState({
+    labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig', 'Sheep'],
     datasets: [
       {
         label: 'Weekly Dashboard',
-        data: [507, 592, 71, 31, 0],
-        backgroundColor: ['#ffce56', '#36a2eb', '#ff6384', '#4bc0c0', '#9966ff'],
+        data: [0, 0, 0, 0, 0, 0],
+        backgroundColor: ['#ffce56', '#36a2eb', '#ff6384', '#4bc0c0', '#9966ff', '#ff9f40'],
         borderWidth: 1,
       },
     ],
-  };
+  });
 
   const options = {
     responsive: true,
@@ -87,21 +87,36 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAuctionData = async () => {
       const { data, error } = await supabase
-        .from('livestock') // Assuming 'livestock' is the correct table name for auction data
+        .from('livestock')
         .select('*');
 
       if (error) {
         console.error('Error fetching auction data:', error.message);
         setErrorMessage('Failed to fetch auction data. Please try again later.');
       } else {
-        // Count the auctions based on their status
+        const categoriesCount = ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig', 'Sheep'].map((category) => {
+          return data.filter((livestock) => livestock.category === category).length;
+        });
+
+        setLivestockData({
+          labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig', 'Sheep'],
+          datasets: [
+            {
+              label: 'Weekly Dashboard',
+              data: categoriesCount,
+              backgroundColor: ['#ffce56', '#36a2eb', '#ff6384', '#4bc0c0', '#9966ff', '#ff9f40'],
+              borderWidth: 1,
+            },
+          ],
+        });
+
         const pendingCount = data.filter((livestock) => livestock.status === 'PENDING').length;
         const availableCount = data.filter((livestock) => livestock.status === 'AVAILABLE').length;
         const soldCount = data.filter((livestock) => livestock.status === 'SOLD').length;
 
-        setUpcomingAuctions(pendingCount); // Set the count for Upcoming Auctions (PENDING)
-        setLiveAuctions(availableCount); // Set the count for Live Auctions (AVAILABLE)
-        setCompletedTransactions(soldCount); // Set the count for Completed Transactions (SOLD)
+        setUpcomingAuctions(pendingCount);
+        setLiveAuctions(availableCount);
+        setCompletedTransactions(soldCount);
       }
     };
 
@@ -110,7 +125,6 @@ const Dashboard = () => {
 
   const handleSaveAnnouncement = async () => {
     if (!announcementText || !announcementDate || !announcementTime) {
-      console.error('All fields must be filled');
       setErrorMessage('Please fill out all fields before saving.');
       return;
     }
@@ -127,7 +141,6 @@ const Dashboard = () => {
       .select('*');
 
     if (error) {
-      console.error('Error saving announcement:', error.message);
       setErrorMessage('Failed to save the announcement. Please try again.');
     } else {
       setAnnouncements((prevAnnouncements) => [data[0], ...prevAnnouncements]);
@@ -205,77 +218,66 @@ const Dashboard = () => {
                 </button>
                 {showAllAnnouncements && (
                   <div className="mt-4">
-                    <h3 className="font-semibold text-lg text-green-800 mb-4">All Announcements:</h3>
-                    <ul className="space-y-2">
-                      {announcements.map((announcement, index) => (
-                        <li key={index} className="bg-gray-50 border-l-4 border-green-500 p-2 rounded-md shadow-sm">
-                          <p>{announcement.text}</p>
-                          <p className="text-xs text-gray-500">{announcement.date} {announcement.time}</p>
-                        </li>
-                      ))}
-                    </ul>
+                    {announcements.map((announcement) => (
+                      <div key={announcement.id} className="border-b border-gray-300 py-2">
+                        <p className="text-sm">{announcement.text}</p>
+                        <p className="text-xs text-gray-500">{announcement.date} {announcement.time}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="font-semibold text-lg mb-4 text-green-800">Weekly Dashboard</h2>
-            <div className="relative w-full h-64">
-              <Bar data={data} options={options} />
+          <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 className="font-semibold text-lg text-green-800">Weekly Dashboard</h2>
+            <div className="h-72">
+              <Bar data={livestockData} options={options} />
             </div>
           </div>
         </div>
 
         {showAnnouncementForm && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-semibold text-green-800 mb-4">Create New Announcement</h2>
-              <form>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Announcement Text</label>
-                  <textarea
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={announcementText}
-                    onChange={(e) => setAnnouncementText(e.target.value)}
-                    rows="4"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Date</label>
-                  <input
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    type="date"
-                    value={announcementDate}
-                    onChange={(e) => setAnnouncementDate(e.target.value)}
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Time</label>
-                  <input
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    type="time"
-                    value={announcementTime}
-                    onChange={(e) => setAnnouncementTime(e.target.value)}
-                  />
-                </div>
+          <div className="bg-white shadow-md p-6 rounded-lg fixed bottom-0 left-0 right-0 z-10">
+            <h2 className="font-semibold text-lg text-green-800">New Announcement</h2>
+            <form>
+              <textarea
+                className="w-full p-4 border rounded-md mb-4"
+                rows="3"
+                placeholder="Enter announcement text"
+                value={announcementText}
+                onChange={(e) => setAnnouncementText(e.target.value)}
+              />
+              <input
+                type="date"
+                className="w-full p-4 border rounded-md mb-4"
+                value={announcementDate}
+                onChange={(e) => setAnnouncementDate(e.target.value)}
+              />
+              <input
+                type="time"
+                className="w-full p-4 border rounded-md mb-4"
+                value={announcementTime}
+                onChange={(e) => setAnnouncementTime(e.target.value)}
+              />
+              <div className="flex justify-end mt-4">
                 <button
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg"
                   type="button"
+                  className="bg-green-500 text-white px-6 py-2 rounded-lg"
                   onClick={handleSaveAnnouncement}
                 >
                   Save
                 </button>
                 <button
-                  className="ml-4 text-gray-600"
                   type="button"
+                  className="ml-4 text-red-500"
                   onClick={() => setShowAnnouncementForm(false)}
                 >
                   Cancel
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         )}
       </div>

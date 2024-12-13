@@ -1,8 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSearch, FaCog, FaBell } from 'react-icons/fa';
+import { supabase } from '../supabaseClient'; // Import Supabase client
 
 const TopHeader = ({ title, onSearch }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [adminName, setAdminName] = useState('');
+
+  useEffect(() => {
+    const fetchAdminName = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('admins') // Replace 'admins' with the name of your table
+          .select('username') // Replace 'username' with the column that stores the admin's name
+          .eq('role', 'admin') // Example condition to fetch admin user
+          .single();
+
+        if (error) {
+          console.error('Error fetching admin username:', error);
+          setAdminName('Admin'); // Fallback in case of an error
+        } else if (data && data.username) {
+          setAdminName(data.username);
+        } else {
+          setAdminName('Admin'); // Fallback if username is unavailable
+        }
+      } catch (error) {
+        console.error('Unexpected error fetching admin username:', error);
+        setAdminName('Admin'); // Fallback in case of an unexpected error
+      }
+    };
+
+    fetchAdminName();
+  }, []);
 
   const handleSearch = () => {
     if (onSearch) {
@@ -62,7 +90,7 @@ const TopHeader = ({ title, onSearch }) => {
             className="rounded-full"
           />
           <div>
-            <p className="font-semibold text-gray-800 text-sm lg:text-base">Grechelle Boneo</p>
+            <p className="font-semibold text-gray-800 text-sm lg:text-base">{adminName}</p>
             <p className="text-xs lg:text-sm text-green-700">Admin</p>
           </div>
         </div>
