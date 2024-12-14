@@ -44,7 +44,6 @@ const Users = () => {
         .from('profiles')
         .update({
           full_name: editedUser.name,
-          email: editedUser.email,
         })
         .eq('id', editedUser.user_id);
 
@@ -55,7 +54,7 @@ const Users = () => {
         setUsers((prevUsers) =>
           prevUsers.map((user) =>
             user.user_id === editedUser.user_id
-              ? { ...user, name: editedUser.name, email: editedUser.email }
+              ? { ...user, name: editedUser.name }
               : user
           )
         );
@@ -110,14 +109,16 @@ const Users = () => {
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-green-800 text-white text-left">
+                <th className="p-2">#</th>
                 <th className="p-2">Name</th>
                 <th className="p-2">Email</th>
                 <th className="p-2">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {users.map((user, index) => (
                 <tr key={user.user_id} className="border-t">
+                  <td className="p-2">{index + 1}</td>
                   <td className="p-2">{user.name}</td>
                   <td className="p-2">{user.email}</td>
                   <td className="p-2 flex gap-2">
@@ -155,13 +156,6 @@ const Users = () => {
                 className="w-full p-2 border rounded mb-4"
                 value={editedUser.name}
                 onChange={(e) => setEditedUser({ ...editedUser, name: e.target.value })}
-              />
-              <label className="block mb-2">Email</label>
-              <input
-                type="email"
-                className="w-full p-2 border rounded mb-4"
-                value={editedUser.email}
-                onChange={(e) => setEditedUser({ ...editedUser, email: e.target.value })}
               />
               <div className="flex justify-end">
                 <button
