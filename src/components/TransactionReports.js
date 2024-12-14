@@ -1,17 +1,50 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import TopHeader from './TopHeader';
+import { supabase } from '../supabaseClient';
 
 const TransactionReports = () => {
   const navigate = useNavigate(); // Initialize the useNavigate hook
 
-  const reportData = [
-    { species: 'Carabao', registered: 507, sold: 507, unsold: 0 },
-    { species: 'Cattle', registered: 592, sold: 592, unsold: 0 },
-    { species: 'Horse', registered: 31, sold: 31, unsold: 0 },
-    { species: 'Goat', registered: 77, sold: 77, unsold: 0 },
-    { species: 'Hogs', registered: 0, sold: 0, unsold: 0 },
-  ];
+  // State for storing report data from Supabase
+  const [reportData, setReportData] = useState([]);
+  
+  useEffect(() => {
+    // Function to fetch data from Supabase
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('livestock') // Access the 'livestock' table
+          .select('*'); // Select all columns
+        
+        if (error) {
+          throw error;
+        }
+
+        // Process the fetched data and group by category
+        const categorizedData = ['Carabao', 'Cattle', 'Horse', 'Goat', 'Sheep', 'Pig'].map((category) => {
+          const filteredData = data.filter((item) => item.category === category && item.status !== 'DISAPPROVED' && item.status !== 'PENDING');
+          
+          const registered = filteredData.length;
+          const sold = filteredData.filter((item) => item.status === 'SOLD').length;
+          const unsold = filteredData.filter((item) => item.status === 'AUCTION_ENDED').length;
+
+          return {
+            category,
+            registered,
+            sold,
+            unsold
+          };
+        });
+
+        setReportData(categorizedData); // Update state with categorized data
+      } catch (error) {
+        console.error('Error fetching data from Supabase:', error);
+      }
+    };
+
+    fetchData(); // Call the fetchData function on component mount
+  }, []);
 
   return (
     <div className="flex flex-col h-screen">
@@ -24,19 +57,19 @@ const TransactionReports = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Weekly Animal Transaction Report</h1>
           <p className="text-gray-500">for the month of</p>
-          <p className="text-gray-500">Species: Large animals</p>
+          <p className="text-gray-500">Category: Large animals</p>
           <p className="text-gray-500">No. of Animals</p>
         </div>
 
         {/* Two-column Layout */}
         <div className="flex flex-col lg:flex-row justify-between space-y-4 lg:space-y-0 lg:space-x-6">
-          {/* Left Side: Species Table */}
+          {/* Left Side: category Table */}
           <div className="w-full lg:w-1/2">
             <div className="bg-white shadow-lg rounded-lg p-6">
               <table className="w-full table-auto border-collapse">
                 <thead>
                   <tr className="bg-green-800 text-white">
-                    <th className="p-3 border">Species</th>
+                    <th className="p-3 border">Category</th>
                     <th className="p-3 border">Registered</th>
                     <th className="p-3 border">Sold</th>
                     <th className="p-3 border">Unsold</th>
@@ -45,7 +78,7 @@ const TransactionReports = () => {
                 <tbody>
                   {reportData.map((item, index) => (
                     <tr key={index} className="border-t">
-                      <td className="p-3 text-gray-700">{item.species}</td>
+                      <td className="p-3 text-gray-700">{item.category}</td>
                       <td className="p-3 text-gray-700">{item.registered}</td>
                       <td className="p-3 text-gray-700">{item.sold}</td>
                       <td className="p-3 text-gray-700">{item.unsold}</td>
@@ -102,7 +135,11 @@ const TransactionReports = () => {
                     <td className="p-3 text-gray-700">??</td>
                   </tr>
                   <tr className="border-t">
-                    <td className="p-3 text-gray-700">Hog</td>
+                    <td className="p-3 text-gray-700">Sheep</td>
+                    <td className="p-3 text-gray-700">??</td>
+                  </tr>
+                  <tr className="border-t">
+                    <td className="p-3 text-gray-700">Pig</td>
                     <td className="p-3 text-gray-700">??</td>
                   </tr>
                 </tbody>
