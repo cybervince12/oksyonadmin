@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import TopHeader from './TopHeader';
 import { supabase } from '../supabaseClient';
 
 const TransactionReports = () => {
-  const navigate = useNavigate(); // Initialize the useNavigate hook
 
   // State for storing report data from Supabase
   const [reportData, setReportData] = useState([]);
@@ -87,27 +85,12 @@ const TransactionReports = () => {
                 </tbody>
               </table>
             </div>
-
-            <div className="bg-white shadow-lg rounded-lg p-6 mt-6">
-              <p className="font-bold text-lg text-gray-800">Income</p>
-              <p className="text-sm text-gray-500">Jan 01 - Dec 31</p>
-              {/* Placeholder for chart */}
-              <div className="bg-gray-200 h-32 mt-4 flex items-center justify-center">
-                <p>Chart Placeholder</p>
-              </div>
-              <button
-                className="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded"
-                onClick={() => navigate('/admin/full-report')}
-              >
-                View full report
-              </button>
-            </div>
           </div>
 
           {/* Right Side: Livestock Prices - Placeholder */}
           <div className="w-full lg:w-1/2">
             <div className="bg-white shadow-lg rounded-lg p-6">
-              <h2 className="text-lg font-bold text-gray-800">Prevailing average prices as of April 2024</h2>
+              <h2 className="text-lg font-bold text-gray-800">Prevailing Average Prices of Livestock</h2>
               <p className="text-gray-500 mt-4">Data not available. Please update this table with the correct values when ready.</p>
               <table className="w-full table-auto border-collapse mt-4">
                 <thead>
@@ -120,27 +103,27 @@ const TransactionReports = () => {
                   {/* Placeholder for actual data */}
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Cattle</td>
-                    <td className="p-3 text-gray-700">??</td>
+                    <td className="p-3 text-gray-700">174.58</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Carabao</td>
-                    <td className="p-3 text-gray-700">??</td>
+                    <td className="p-3 text-gray-700">149.41</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Horse</td>
-                    <td className="p-3 text-gray-700">??</td>
+                    <td className="p-3 text-gray-700">500</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Goat</td>
-                    <td className="p-3 text-gray-700">??</td>
+                    <td className="p-3 text-gray-700">230.65</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Sheep</td>
-                    <td className="p-3 text-gray-700">??</td>
+                    <td className="p-3 text-gray-700">54</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Pig</td>
-                    <td className="p-3 text-gray-700">??</td>
+                    <td className="p-3 text-gray-700">169.73</td>
                   </tr>
                 </tbody>
               </table>

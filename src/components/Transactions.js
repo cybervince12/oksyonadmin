@@ -8,34 +8,11 @@ const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('Pending');
   const [errorMessage, setErrorMessage] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [sortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const pageLimit = 10;
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('livestock')
-          .select('category')
-          .distinct();
-        if (error) {
-          console.error('Error fetching categories:', error);
-        } else {
-          setCategories(data.map((item) => item.category));
-        }
-      } catch (error) {
-        console.error('Unexpected error fetching categories:', error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // State to handle the modal visibility
+  const [selectedTransaction, setSelectedTransaction] = useState(null); // To store the selected transaction for action
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -50,37 +27,22 @@ const Transactions = () => {
         } else if (activeTab === 'Disapproved') {
           statusFilter = ['DISAPPROVED'];
         }
-
+  
         let query = supabase.from('livestock').select('*').in('status', statusFilter);
-
-        if (categoryFilter) {
-          query = query.eq('category', categoryFilter);
-        }
-
-        if (startDate) {
-          query = query.gte('auction_start', startDate);
-        }
-        if (endDate) {
-          query = query.lte('auction_end', endDate);
-        }
-
+  
         const { data, error } = await query;
         if (error) {
           console.error('Error fetching livestock:', error);
           setErrorMessage('Failed to fetch livestock. Please try again later.');
         } else {
-          let filteredData = data.filter((transaction) =>
-            transaction.livestock_id.includes(searchQuery) ||
-            transaction.category.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-
-          filteredData.sort((a, b) => {
+          // Removed the filtering based on searchQuery
+          data.sort((a, b) => {
             const dateA = new Date(a.auction_start);
             const dateB = new Date(b.auction_start);
             return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
           });
-
-          setTransactions(filteredData);
+  
+          setTransactions(data);
           setErrorMessage(null);
         }
       } catch (error) {
@@ -88,54 +50,52 @@ const Transactions = () => {
         setErrorMessage('An unexpected error occurred while fetching livestock.');
       }
     };
-
+  
     fetchTransactions();
-  }, [activeTab, searchQuery, categoryFilter, startDate, endDate, sortOrder]);
+  }, [activeTab, sortOrder]);
+  
 
   const handleApprove = async (id) => {
-    try {
-      const { error } = await supabase
-        .from('livestock')
-        .update({ status: 'AVAILABLE' })
-        .eq('livestock_id', id);
-
-      if (error) {
-        console.error('Error approving livestock:', error);
-        setErrorMessage('Failed to approve livestock. Please try again.');
-      } else {
-        setTransactions(
-          transactions.map((transaction) =>
-            transaction.livestock_id === id ? { ...transaction, status: 'AVAILABLE' } : transaction
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Unexpected error during approval:', error);
-      setErrorMessage('An unexpected error occurred while approving livestock.');
-    }
+    setSelectedTransaction({ id, action: 'approve' });
+    setShowConfirmModal(true);
   };
 
   const handleDisapprove = async (id) => {
+    setSelectedTransaction({ id, action: 'disapprove' });
+    setShowConfirmModal(true);
+  };
+
+  const confirmAction = async () => {
     try {
+      const updatedStatus = selectedTransaction.action === 'approve' ? 'AVAILABLE' : 'DISAPPROVED';
       const { error } = await supabase
         .from('livestock')
-        .update({ status: 'DISAPPROVED' })
-        .eq('livestock_id', id);
+        .update({ status: updatedStatus })
+        .eq('livestock_id', selectedTransaction.id);
 
       if (error) {
-        console.error('Error disapproving livestock:', error);
-        setErrorMessage('Failed to disapprove livestock. Please try again.');
+        console.error('Error updating livestock:', error);
+        setErrorMessage('Failed to update livestock. Please try again.');
       } else {
         setTransactions(
           transactions.map((transaction) =>
-            transaction.livestock_id === id ? { ...transaction, status: 'DISAPPROVED' } : transaction
+            transaction.livestock_id === selectedTransaction.id
+              ? { ...transaction, status: updatedStatus }
+              : transaction
           )
         );
+        setShowConfirmModal(false);
+        setSelectedTransaction(null);
       }
     } catch (error) {
-      console.error('Unexpected error during disapproval:', error);
-      setErrorMessage('An unexpected error occurred while disapproving livestock.');
+      console.error('Unexpected error during approval/disapproval:', error);
+      setErrorMessage('An unexpected error occurred while updating livestock.');
     }
+  };
+
+  const cancelAction = () => {
+    setShowConfirmModal(false);
+    setSelectedTransaction(null);
   };
 
   const renderTransactions = () => {
@@ -167,37 +127,108 @@ const Transactions = () => {
           {format(new Date(transaction.auction_end), 'MM/dd/yyyy hh:mm a')}
         </td>
         <td className="p-3 text-sm">
-          <span
-            className={`py-1 px-3 rounded text-sm ${
-              transaction.status === 'AVAILABLE'
-                ? 'bg-green-500 text-white'
-                : transaction.status === 'PENDING'
-                ? 'bg-yellow-500 text-white'
-                : transaction.status === 'AUCTION_ENDED'
-                ? 'bg-red-500 text-white'
-                : transaction.status === 'DISAPPROVED'
-                ? 'bg-gray-500 text-white'
-                : 'bg-gray-500 text-white'
-            }`}
-          >
-            {transaction.status}
-          </span>
+        <span
+  className={`py-2 px-4 rounded text-sm font-semibold inline-flex items-center ${
+    transaction.status === 'AVAILABLE'
+      ? 'bg-green-600 text-white'
+      : transaction.status === 'PENDING'
+      ? 'bg-yellow-600 text-white'
+      : transaction.status === 'AUCTION_ENDED'
+      ? 'bg-red-600 text-white'
+      : transaction.status === 'DISAPPROVED'
+      ? 'bg-gray-600 text-white'
+      : 'bg-gray-400 text-white'
+  }`}
+>
+  {transaction.status === 'AVAILABLE' && (
+    <svg
+      className="w-4 h-4 mr-2 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M5 13l4 4L19 7"
+      />
+    </svg>
+  )}
+  {transaction.status === 'PENDING' && (
+    <svg
+      className="w-4 h-4 mr-2 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M12 5v14m7-7H5"
+      />
+    </svg>
+  )}
+  {transaction.status === 'AUCTION_ENDED' && (
+    <svg
+      className="w-4 h-4 mr-2 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M6 9l6 6 6-6"
+      />
+    </svg>
+  )}
+  {transaction.status === 'DISAPPROVED' && (
+    <svg
+      className="w-4 h-4 mr-2 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M6 18L18 6M6 6l12 12"
+      />
+    </svg>
+  )}
+  {transaction.status}
+</span>
+
         </td>
         <td className="p-3 text-sm">{transaction.location}</td>
         <td className="p-3 text-sm">
           {transaction.proof_of_ownership_url ? (
-            <a href={transaction.proof_of_ownership_url} target="_blank" rel="noopener noreferrer">
-              Proof
-            </a>
+            <button
+              onClick={() => window.open(transaction.proof_of_ownership_url, '_blank')}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              View
+            </button>
           ) : (
             'Not Available'
           )}
         </td>
         <td className="p-3 text-sm">
           {transaction.vet_certificate_url ? (
-            <a href={transaction.vet_certificate_url} target="_blank" rel="noopener noreferrer">
-              Vet Cert
-            </a>
+            <button
+              onClick={() => window.open(transaction.vet_certificate_url, '_blank')}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              View
+            </button>
           ) : (
             'Not Available'
           )}
@@ -224,131 +255,127 @@ const Transactions = () => {
     ));
   };
 
-  const totalPages = Math.ceil(transactions.length / pageLimit);
-
   return (
-    <div className="h-screen flex flex-col">
+    <>
       <TopHeader title="Transactions" />
-      <div className="p-6 bg-gray-100 flex-grow">
-        <div className="flex mb-4 border-b">
-          <button
-            onClick={() => setActiveTab('Pending')}
-            className={`px-4 py-2 ${activeTab === 'Pending' ? 'border-b-2 border-yellow-500 font-bold' : ''}`}
-          >
-            Pending Auctions
-          </button>
-          <button
-            onClick={() => setActiveTab('Ongoing')}
-            className={`px-4 py-2 ${activeTab === 'Ongoing' ? 'border-b-2 border-green-500 font-bold' : ''}`}
-          >
-            Ongoing Auctions
-          </button>
-          <button
-            onClick={() => setActiveTab('Finished')}
-            className={`px-4 py-2 ${activeTab === 'Finished' ? 'border-b-2 border-red-500 font-bold' : ''}`}
-          >
-            Finished Auctions
-          </button>
-          <button
-            onClick={() => setActiveTab('Disapproved')}
-            className={`px-4 py-2 ${activeTab === 'Disapproved' ? 'border-b-2 border-gray-500 font-bold' : ''}`}
-          >
-            Disapproved Auctions
-          </button>
-        </div>
+      <div className="container mx-auto p-4">
+        {errorMessage && (
+          <div className="text-red-500 text-center p-2 border border-red-500 mb-4">
+            {errorMessage}
+          </div>
+        )}
 
-        <div className="flex mb-4">
-          <input
-            type="text"
-            placeholder="Search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border p-2 mr-2"
-          />
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="border p-2 mr-2"
-          >
-            <option value="">All Categories</option>
-            {/* Static category options */}
-            <option value="Cattle">Cattle</option>
-            <option value="Goat">Goat</option>
-            <option value="Pig">Pig</option>
-            <option value="Sheep">Sheep</option>
-            <option value="Sheep">Horse</option>
-            <option value="Sheep">Carabao</option>
-      
-            {categories.map((category, index) => (
-              <option key={index} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border p-2 mr-2"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border p-2"
-          />
-        </div>
-
-        {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
-
-        <table className="w-full table-auto">
-          <thead className="bg-green-800 text-white">
-            <tr>
-              <th className="p-3">#</th>
-              <th className="p-3">ID</th>
-              <th className="p-3">Category</th>
-              <th className="p-3">Breed</th>
-              <th className="p-3">Age</th>
-              <th className="p-3">Gender</th>
-              <th className="p-3">Weight</th>
-              <th className="p-3">Starting Price</th>
-              <th className="p-3">Current Bid</th>
-              <th className="p-3">Start Date</th>
-              <th className="p-3">End Date</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Location</th>
-              <th className="p-3">Ownership Proof</th>
-              <th className="p-3">Vet Cert</th>
-              {activeTab === 'Pending' && <th className="p-3">Actions</th>}
-            </tr>
-          </thead>
-          <tbody>{renderTransactions()}</tbody>
-        </table>
-
-        <div className="mt-4 flex justify-between">
-          <div>
+        <div className="flex justify-between mb-4">
+          <div className="flex space-x-4">
             <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className={`px-4 py-2 rounded ${activeTab === 'Pending' ? 'bg-blue-500' : 'bg-gray-300'}`}
+              onClick={() => setActiveTab('Pending')}
             >
-              Previous
+              Pending
             </button>
-            <span className="px-4 py-2">{`Page ${currentPage} of ${totalPages}`}</span>
             <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className={`px-4 py-2 rounded ${activeTab === 'Ongoing' ? 'bg-blue-500' : 'bg-gray-300'}`}
+              onClick={() => setActiveTab('Ongoing')}
             >
-              Next
+              Ongoing
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${activeTab === 'Finished' ? 'bg-blue-500' : 'bg-gray-300'}`}
+              onClick={() => setActiveTab('Finished')}
+            >
+              Finished
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${activeTab === 'Disapproved' ? 'bg-blue-500' : 'bg-gray-300'}`}
+              onClick={() => setActiveTab('Disapproved')}
+            >
+              Disapproved
             </button>
           </div>
-          <CSVLink data={transactions} filename="transactions.csv" className="px-4 py-2 bg-green-500 text-white rounded">
-            Export to CSV
+
+          <CSVLink
+            data={transactions}
+            filename="transactions.csv"
+            className="bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Export CSV
           </CSVLink>
         </div>
+
+        
+          <div className="flex space-x-4">
+          
+
+    
+    
+  </div>
+        
+
+        <table className="w-full border-collapse text-xs max-w-screen-sm overflow-auto">
+  <thead>
+    <tr>
+      <th className="p-1 text-xs text-white bg-green-800">#</th>
+      <th className="p-1 text-xs text-white bg-green-800">ID</th>
+      <th className="p-1 text-xs text-white bg-green-800">Category</th>
+      <th className="p-1 text-xs text-white bg-green-800">Breed</th>
+      <th className="p-1 text-xs text-white bg-green-800">Age</th>
+      <th className="p-1 text-xs text-white bg-green-800">Gender</th>
+      <th className="p-1 text-xs text-white bg-green-800">Weight</th>
+      <th className="p-1 text-xs text-white bg-green-800">Starting Price</th>
+      <th className="p-1 text-xs text-white bg-green-800">Current Bid</th>
+      <th className="p-1 text-xs text-white bg-green-800">Auction Start</th>
+      <th className="p-1 text-xs text-white bg-green-800">Auction End</th>
+      <th className="p-1 text-xs text-white bg-green-800">Status</th>
+      <th className="p-1 text-xs text-white bg-green-800">Location</th>
+      <th className="p-1 text-xs text-white bg-green-800">Proof of Ownership</th>
+      <th className="p-1 text-xs text-white bg-green-800">Vet Cert</th>
+      {activeTab === 'Pending' && <th className="p-1 text-xs text-white bg-green-800">Actions</th>}
+    </tr>
+  </thead>
+  <tbody>{renderTransactions()}</tbody>
+</table>
+
+
+{showConfirmModal && (
+  <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div className="bg-white p-6 rounded-md max-w-sm">
+      <h2 className="text-lg font-semibold mb-2">Confirm Action</h2>
+      <p className="text-sm">Are you sure you want to {selectedTransaction?.action} this transaction?</p>
+      <div className="mt-2 flex space-x-2">
+        <button
+          onClick={confirmAction}
+          className="bg-green-500 text-white py-1 px-3 text-sm rounded"
+        >
+          Confirm
+        </button>
+        <button
+          onClick={cancelAction}
+          className="bg-red-500 text-white py-1 px-3 text-sm rounded"
+        >
+          Cancel
+        </button>
       </div>
     </div>
+  </div>
+)}
+
+
+        <div className="flex justify-between mt-4">
+          <button
+            onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+            className="bg-gray-300 px-4 py-2 rounded"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="bg-gray-300 px-4 py-2 rounded"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </>
   );
 };
 

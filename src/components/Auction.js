@@ -18,26 +18,27 @@ const Auction = () => {
           if (error) throw error;
           dataResponse = data;
         } else if (currentPage === 'PNS2') {
-          // Fetch livestock data and match it with prices
+          // Fetch livestock data
           const { data: livestock, error: livestockError } = await supabase.from('pns2_prices').select('*');
           if (livestockError) throw livestockError;
 
-          const livestockTypes = livestock.map((livestock) => livestock.livestock);
-          const { data: prices, error: priceError } = await supabase
-            .from('pns2_prices')
-            .select('*')
-            .in('livestock', livestockTypes); // Filter based on livestock type
+          // Organizing the data: group prices by livestock type (avoiding duplication)
+          const livestockTypes = [...new Set(livestock.map((l) => l.livestock))]; // Get unique livestock types
+          const dataWithPrices = livestockTypes.map((livestockType) => {
+            const pricesForType = livestock.filter((l) => l.livestock === livestockType);
+            return {
+              livestock: livestockType,
+              weightRange: pricesForType[0]?.weight_range, // Use the weight range of the first price entry
+              prices: pricesForType.map((price) => ({
+                id: price.id,
+                label: price.label,
+                price_min: price.price_min || '',
+                price_max: price.price_max || '',
+              })),
+            };
+          });
 
-          if (priceError) throw priceError;
-
-          // Organizing the data: group prices by livestock
-          dataResponse = livestock.map((livestock) => ({
-            livestock: livestock.livestock,
-            weightRange: livestock.weight_range,
-            prices: prices
-              .filter((price) => price.livestock === livestock.livestock)
-              .map((price) => ({ id: price.id, label: price.label, price_min: price.price_min || '', price_max: price.price_max || '' })),
-          }));
+          dataResponse = dataWithPrices;
         } else if (currentPage === 'PNS3') {
           const { data, error } = await supabase.from('pns3_prices').select('*');
           if (error) throw error;
@@ -151,7 +152,7 @@ const Auction = () => {
               </button>
             ))}
           </div>
-  
+
           {/* Table Content */}
           <div className="overflow-auto">
             <table className="table-auto sm:table-fixed w-full border border-gray-300">
@@ -222,7 +223,7 @@ const Auction = () => {
 
   return (
     <div>
-      <TopHeader />
+      <TopHeader title="Auction" />
       {renderContent()}
     </div>
   );
