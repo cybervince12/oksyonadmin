@@ -39,11 +39,6 @@ const TopHeader = ({ title}) => {
       <div className="flex items-center gap-4">
         {/* Profile Section */}
         <div className="hidden sm:flex items-center gap-2">
-          <img
-            src="https://via.placeholder.com/40"
-            alt="Profile"
-            className="rounded-full"
-          />
           <div>
             <p className="font-semibold text-gray-800 text-sm lg:text-base">{adminName}</p>
             <p className="text-xs lg:text-sm text-green-700">Admin</p>

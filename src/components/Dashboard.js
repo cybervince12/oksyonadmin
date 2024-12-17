@@ -31,7 +31,7 @@ const Dashboard = () => {
     labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig', 'Sheep'],
     datasets: [
       {
-        label: 'Weekly Dashboard',
+        label: 'Weekly Transactions',
         data: [0, 0, 0, 0, 0, 0],
         backgroundColor: ['#ffce56', '#36a2eb', '#ff6384', '#4bc0c0', '#9966ff', '#ff9f40'],
         borderWidth: 1,
@@ -102,7 +102,7 @@ const Dashboard = () => {
           labels: ['Carabao', 'Cattle', 'Goat', 'Horse', 'Pig', 'Sheep'],
           datasets: [
             {
-              label: 'Weekly Dashboard',
+              label: 'Weekly Transactions',
               data: categoriesCount,
               backgroundColor: ['#ffce56', '#36a2eb', '#ff6384', '#4bc0c0', '#9966ff', '#ff9f40'],
               borderWidth: 1,
@@ -231,7 +231,7 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 className="font-semibold text-lg text-green-800">Weekly Dashboard</h2>
+            <h2 className="font-semibold text-lg text-green-800">Weekly Transactions</h2>
             <div className="h-72">
               <Bar data={livestockData} options={options} />
             </div>

@@ -8,6 +8,9 @@ const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('Pending');
   const [errorMessage, setErrorMessage] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [sortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const pageLimit = 10;
@@ -27,9 +30,20 @@ const Transactions = () => {
         } else if (activeTab === 'Disapproved') {
           statusFilter = ['DISAPPROVED'];
         }
-  
+
         let query = supabase.from('livestock').select('*').in('status', statusFilter);
-  
+
+        if (categoryFilter) {
+          query = query.eq('category', categoryFilter);
+        }
+
+        if (startDate) {
+          query = query.gte('auction_start', startDate);
+        }
+        if (endDate) {
+          query = query.lte('auction_end', endDate);
+        }
+
         const { data, error } = await query;
         if (error) {
           console.error('Error fetching livestock:', error);
@@ -50,10 +64,9 @@ const Transactions = () => {
         setErrorMessage('An unexpected error occurred while fetching livestock.');
       }
     };
-  
+
     fetchTransactions();
-  }, [activeTab, sortOrder]);
-  
+  }, [activeTab, categoryFilter, startDate, endDate, sortOrder]);
 
   const handleApprove = async (id) => {
     setSelectedTransaction({ id, action: 'approve' });
@@ -257,7 +270,7 @@ const Transactions = () => {
 
   return (
     <>
-      <TopHeader title="Transactions" />
+      <TopHeader title="Transaction Reports" />
       <div className="container mx-auto p-4">
         {errorMessage && (
           <div className="text-red-500 text-center p-2 border border-red-500 mb-4">
@@ -302,14 +315,36 @@ const Transactions = () => {
           </CSVLink>
         </div>
 
-        
+        <div className="mb-4 flex justify-between">
           <div className="flex space-x-4">
-          
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="border p-2 rounded"
+          >
+            <option value="">Filter by Category</option>
+                <option value="sheep">Sheep</option>
+                <option value="pig">Pig</option>
+                <option value="carabao">Carabao</option>
+                <option value="cattle">Cattle</option>
+                <option value="goat">Goat</option>
+                <option value="horse">Horse</option>
+          </select>
 
-    
-    
+    <input
+      type="date"
+      value={startDate}
+      onChange={(e) => setStartDate(e.target.value)}
+      className="px-4 py-2 border rounded"
+    />
+    <input
+      type="date"
+      value={endDate}
+      onChange={(e) => setEndDate(e.target.value)}
+      className="px-4 py-2 border rounded"
+    />
   </div>
-        
+        </div>
 
         <table className="w-full border-collapse text-xs max-w-screen-sm overflow-auto">
   <thead>
