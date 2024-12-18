@@ -404,6 +404,7 @@ const Transactions = () => {
           </button>
           <button
             onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={(currentPage * pageLimit) >= transactions.length}
             className="bg-gray-300 px-4 py-2 rounded"
           >
             Next
