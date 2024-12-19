@@ -14,8 +14,8 @@ const Transactions = () => {
   const [sortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const pageLimit = 10;
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // State to handle the modal visibility
-  const [selectedTransaction, setSelectedTransaction] = useState(null); // To store the selected transaction for action
+  const [showConfirmModal, setShowConfirmModal] = useState(false); 
+  const [selectedTransaction, setSelectedTransaction] = useState(null); 
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -29,6 +29,8 @@ const Transactions = () => {
           statusFilter = ['AUCTION_ENDED', 'SOLD'];
         } else if (activeTab === 'Disapproved') {
           statusFilter = ['DISAPPROVED'];
+
+      
         }
 
         let query = supabase.from('livestock').select('*').in('status', statusFilter);
@@ -130,8 +132,8 @@ const Transactions = () => {
         <td className="p-3 text-sm">{transaction.breed}</td>
         <td className="p-3 text-sm">{transaction.age}</td>
         <td className="p-3 text-sm">{transaction.gender}</td>
-        <td className="p-3 text-sm">{transaction.weight}</td>
-        <td className="p-3 text-sm">{transaction.starting_price}</td>
+        <td className="p-3 text-sm">{transaction.weight}kg</td>
+        <td className="p-3 text-sm">P{transaction.starting_price}</td>
         <td className="p-3 text-sm">{transaction.current_bid}</td>
         <td className="p-3 text-sm">
           {format(new Date(transaction.auction_start), 'MM/dd/yyyy hh:mm a')}
@@ -223,29 +225,30 @@ const Transactions = () => {
         </td>
         <td className="p-3 text-sm">{transaction.location}</td>
         <td className="p-3 text-sm">
-          {transaction.proof_of_ownership_url ? (
-            <button
-              onClick={() => window.open(transaction.proof_of_ownership_url, '_blank')}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              View
-            </button>
-          ) : (
-            'Not Available'
-          )}
-        </td>
-        <td className="p-3 text-sm">
-          {transaction.vet_certificate_url ? (
-            <button
-              onClick={() => window.open(transaction.vet_certificate_url, '_blank')}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              View
-            </button>
-          ) : (
-            'Not Available'
-          )}
-        </td>
+  {transaction.proof_of_ownership_url ? (
+    <span
+      onClick={() => window.open(transaction.proof_of_ownership_url, '_blank')}
+      className="text-blue-500 underline cursor-pointer hover:text-blue-600"
+    >
+      View Proof of Ownership
+    </span>
+  ) : (
+    'Not Available'
+  )}
+</td>
+<td className="p-3 text-sm">
+  {transaction.vet_certificate_url ? (
+    <span
+      onClick={() => window.open(transaction.vet_certificate_url, '_blank')}
+      className="text-blue-500 underline cursor-pointer hover:text-blue-600"
+    >
+      View Vet Certificate
+    </span>
+  ) : (
+    'Not Available'
+  )}
+</td>
+
         {activeTab === 'Pending' && (
           <td className="p-3 text-sm">
             <div className="flex space-x-2">
@@ -279,32 +282,41 @@ const Transactions = () => {
         )}
 
         <div className="flex justify-between mb-4">
-          <div className="flex space-x-4">
-            <button
-              className={`px-4 py-2 rounded ${activeTab === 'Pending' ? 'bg-blue-500' : 'bg-gray-300'}`}
-              onClick={() => setActiveTab('Pending')}
-            >
-              Pending
-            </button>
-            <button
-              className={`px-4 py-2 rounded ${activeTab === 'Ongoing' ? 'bg-blue-500' : 'bg-gray-300'}`}
-              onClick={() => setActiveTab('Ongoing')}
-            >
-              Ongoing
-            </button>
-            <button
-              className={`px-4 py-2 rounded ${activeTab === 'Finished' ? 'bg-blue-500' : 'bg-gray-300'}`}
-              onClick={() => setActiveTab('Finished')}
-            >
-              Finished
-            </button>
-            <button
-              className={`px-4 py-2 rounded ${activeTab === 'Disapproved' ? 'bg-blue-500' : 'bg-gray-300'}`}
-              onClick={() => setActiveTab('Disapproved')}
-            >
-              Disapproved
-            </button>
-          </div>
+        <div className="flex space-x-4">
+          <button
+            className={`px-4 py-2 border-b-4 rounded-sm ${
+              activeTab === 'Pending' ? 'text-yellow-600 border-yellow-600' : 'border-transparent'
+            }`}
+            onClick={() => setActiveTab('Pending')}
+          >
+            Pending
+          </button>
+          <button
+            className={`px-4 py-2 border-b-4 rounded-sm ${
+              activeTab === 'Ongoing' ? 'text-green-600 border-green-600' : 'border-transparent'
+            }`}
+            onClick={() => setActiveTab('Ongoing')}
+          >
+            Ongoing
+          </button>
+          <button
+            className={`px-4 py-2 border-b-4 rounded-sm ${
+              activeTab === 'Finished' ? 'text-red-600 border-red-600' : 'border-transparent'
+            }`}
+            onClick={() => setActiveTab('Finished')}
+          >
+            Finished
+          </button>
+          <button
+            className={`px-4 py-2 border-b-4 rounded-sm ${
+              activeTab === 'Disapproved' ? 'text-gray-700 border-gray-500' : 'border-transparent'
+            }`}
+            onClick={() => setActiveTab('Disapproved')}
+          >
+            Disapproved
+          </button>
+        </div>
+
 
           <CSVLink
             data={transactions}
@@ -316,20 +328,20 @@ const Transactions = () => {
         </div>
 
         <div className="mb-4 flex justify-between">
-          <div className="flex space-x-4">
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="border p-2 rounded"
-          >
-            <option value="">Filter by Category</option>
-                <option value="sheep">Sheep</option>
-                <option value="pig">Pig</option>
-                <option value="carabao">Carabao</option>
-                <option value="cattle">Cattle</option>
-                <option value="goat">Goat</option>
-                <option value="horse">Horse</option>
-          </select>
+            <div className="flex space-x-4">
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="border border-gray-300 p-2 rounded-lg bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+        >
+          <option value="" >Filter by Category</option>
+          <option value="sheep">Sheep</option>
+          <option value="pig">Pig</option>
+          <option value="carabao">Carabao</option>
+          <option value="cattle">Cattle</option>
+          <option value="goat">Goat</option>
+          <option value="horse">Horse</option>
+    </select>
 
     <input
       type="date"
@@ -372,29 +384,29 @@ const Transactions = () => {
 
 
 {showConfirmModal && (
-  <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-6 rounded-md max-w-sm">
-      <h2 className="text-lg font-semibold mb-2">Confirm Action</h2>
-      <p className="text-sm">Are you sure you want to {selectedTransaction?.action} this transaction?</p>
-      <div className="mt-2 flex space-x-2">
-        <button
-          onClick={confirmAction}
-          className="bg-green-500 text-white py-1 px-3 text-sm rounded"
-        >
-          Confirm
-        </button>
+  <div className="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50">
+    <div className="bg-white w-full max-w-md mx-4 p-6 rounded-lg shadow-lg relative">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">Confirm Action</h2>
+      <p className="text-gray-600 text-sm mb-6">
+        Are you sure you want to <span className="font-medium text-gray-800">{selectedTransaction?.action}</span> this transaction?
+      </p>
+      <div className="flex justify-end space-x-4">
         <button
           onClick={cancelAction}
-          className="bg-red-500 text-white py-1 px-3 text-sm rounded"
+          className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200"
         >
           Cancel
+        </button>
+        <button
+          onClick={confirmAction}
+          className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
+        >
+          Confirm
         </button>
       </div>
     </div>
   </div>
 )}
-
-
         <div className="flex justify-between mt-4">
           <button
             onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
