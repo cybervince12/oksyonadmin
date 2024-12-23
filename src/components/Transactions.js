@@ -68,6 +68,49 @@ const Transactions = () => {
     };
 
     fetchTransactions();
+
+    const getStatusFilter = () => {
+  if (activeTab === 'Pending') return ['PENDING'];
+  if (activeTab === 'Ongoing') return ['AVAILABLE'];
+  if (activeTab === 'Finished') return ['AUCTION_ENDED', 'SOLD'];
+  if (activeTab === 'Disapproved') return ['DISAPPROVED'];
+  return [];
+};
+
+
+    const subscription = supabase
+      .channel('livestock-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'livestock' }, (payload) => {
+        const { eventType, new: newData } = payload;
+
+        setTransactions((prevTransactions) => {
+          const statusFilter = getStatusFilter();
+
+          if (eventType === 'INSERT') {
+            // Only add if it matches the active tab's status filter
+            return statusFilter.includes(newData.status) ? [newData, ...prevTransactions] : prevTransactions;
+          }
+          if (eventType === 'UPDATE') {
+            // Update if it matches the active tab's status filter, otherwise remove
+            if (!statusFilter.includes(newData.status)) {
+              return prevTransactions.filter((transaction) => transaction.livestock_id !== newData.livestock_id);
+            }
+            return prevTransactions.map((transaction) =>
+              transaction.livestock_id === newData.livestock_id ? newData : transaction
+            );
+          }
+          if (eventType === 'DELETE') {
+            return prevTransactions.filter((transaction) => transaction.livestock_id !== newData.livestock_id);
+          }
+          return prevTransactions;
+        });
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+
   }, [activeTab, categoryFilter, startDate, endDate, sortOrder]);
 
   const handleApprove = async (id) => {
@@ -273,7 +316,7 @@ const Transactions = () => {
 
   return (
     <>
-      <TopHeader title="Transaction Reports" />
+      <TopHeader title="Transactions" />
       <div className="container mx-auto p-4">
         {errorMessage && (
           <div className="text-red-500 text-center p-2 border border-red-500 mb-4">
