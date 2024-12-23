@@ -68,6 +68,49 @@ const Transactions = () => {
     };
 
     fetchTransactions();
+
+    const getStatusFilter = () => {
+  if (activeTab === 'Pending') return ['PENDING'];
+  if (activeTab === 'Ongoing') return ['AVAILABLE'];
+  if (activeTab === 'Finished') return ['AUCTION_ENDED', 'SOLD'];
+  if (activeTab === 'Disapproved') return ['DISAPPROVED'];
+  return [];
+};
+
+
+    const subscription = supabase
+      .channel('livestock-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'livestock' }, (payload) => {
+        const { eventType, new: newData } = payload;
+
+        setTransactions((prevTransactions) => {
+          const statusFilter = getStatusFilter();
+
+          if (eventType === 'INSERT') {
+            // Only add if it matches the active tab's status filter
+            return statusFilter.includes(newData.status) ? [newData, ...prevTransactions] : prevTransactions;
+          }
+          if (eventType === 'UPDATE') {
+            // Update if it matches the active tab's status filter, otherwise remove
+            if (!statusFilter.includes(newData.status)) {
+              return prevTransactions.filter((transaction) => transaction.livestock_id !== newData.livestock_id);
+            }
+            return prevTransactions.map((transaction) =>
+              transaction.livestock_id === newData.livestock_id ? newData : transaction
+            );
+          }
+          if (eventType === 'DELETE') {
+            return prevTransactions.filter((transaction) => transaction.livestock_id !== newData.livestock_id);
+          }
+          return prevTransactions;
+        });
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+
   }, [activeTab, categoryFilter, startDate, endDate, sortOrder]);
 
   const handleApprove = async (id) => {
@@ -127,14 +170,12 @@ const Transactions = () => {
         className={`border-t hover:bg-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
       > 
         <td className="p-3 text-sm">{index + 1}</td>
-        <td className="p-3 text-sm">{transaction.livestock_id}</td>
         <td className="p-3 text-sm">{transaction.category}</td>
         <td className="p-3 text-sm">{transaction.breed}</td>
         <td className="p-3 text-sm">{transaction.age}</td>
         <td className="p-3 text-sm">{transaction.gender}</td>
         <td className="p-3 text-sm">{transaction.weight}kg</td>
         <td className="p-3 text-sm">P{transaction.starting_price}</td>
-        <td className="p-3 text-sm">{transaction.current_bid}</td>
         <td className="p-3 text-sm">
           {format(new Date(transaction.auction_start), 'MM/dd/yyyy hh:mm a')}
         </td>
@@ -143,7 +184,7 @@ const Transactions = () => {
         </td>
         <td className="p-3 text-sm">
         <span
-  className={`py-2 px-4 rounded text-sm font-semibold inline-flex items-center ${
+  className={`py-1 px-3 rounded-full text-sm font-semibold inline-flex items-center ${
     transaction.status === 'AVAILABLE'
       ? 'bg-green-600 text-white'
       : transaction.status === 'PENDING'
@@ -273,7 +314,7 @@ const Transactions = () => {
 
   return (
     <>
-      <TopHeader title="Transaction Reports" />
+      <TopHeader title="Transactions" />
       <div className="container mx-auto p-4">
         {errorMessage && (
           <div className="text-red-500 text-center p-2 border border-red-500 mb-4">
@@ -362,14 +403,12 @@ const Transactions = () => {
   <thead>
     <tr>
       <th className="p-1 text-xs text-white bg-green-800">#</th>
-      <th className="p-1 text-xs text-white bg-green-800">ID</th>
       <th className="p-1 text-xs text-white bg-green-800">Category</th>
       <th className="p-1 text-xs text-white bg-green-800">Breed</th>
       <th className="p-1 text-xs text-white bg-green-800">Age</th>
       <th className="p-1 text-xs text-white bg-green-800">Gender</th>
       <th className="p-1 text-xs text-white bg-green-800">Weight</th>
       <th className="p-1 text-xs text-white bg-green-800">Starting Price</th>
-      <th className="p-1 text-xs text-white bg-green-800">Current Bid</th>
       <th className="p-1 text-xs text-white bg-green-800">Auction Start</th>
       <th className="p-1 text-xs text-white bg-green-800">Auction End</th>
       <th className="p-1 text-xs text-white bg-green-800">Status</th>

@@ -3,10 +3,9 @@ import TopHeader from './TopHeader';
 import { supabase } from '../supabaseClient';
 
 const TransactionReports = () => {
-
   // State for storing report data from Supabase
   const [reportData, setReportData] = useState([]);
-  
+
   useEffect(() => {
     // Function to fetch data from Supabase
     const fetchData = async () => {
@@ -14,15 +13,17 @@ const TransactionReports = () => {
         const { data, error } = await supabase
           .from('livestock') // Access the 'livestock' table
           .select('*'); // Select all columns
-        
+
         if (error) {
           throw error;
         }
 
         // Process the fetched data and group by category
         const categorizedData = ['Carabao', 'Cattle', 'Horse', 'Goat', 'Sheep', 'Pig'].map((category) => {
-          const filteredData = data.filter((item) => item.category === category && item.status !== 'DISAPPROVED' && item.status !== 'PENDING');
-          
+          const filteredData = data.filter(
+            (item) => item.category === category && item.status !== 'DISAPPROVED' && item.status !== 'PENDING'
+          );
+
           const registered = filteredData.length;
           const sold = filteredData.filter((item) => item.status === 'SOLD').length;
           const unsold = filteredData.filter((item) => item.status === 'AUCTION_ENDED').length;
@@ -31,7 +32,7 @@ const TransactionReports = () => {
             category,
             registered,
             sold,
-            unsold
+            unsold,
           };
         });
 
@@ -49,22 +50,27 @@ const TransactionReports = () => {
       {/* Apply TopHeader component */}
       <TopHeader title="Transaction Reports" />
 
-      {/* Main Content */}
       <div className="p-6 bg-gray-100 flex-grow flex flex-col space-y-4">
-        {/* Report Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Weekly Animal Transaction Report</h1>
-          <p className="text-gray-500">for the month of</p>
-          <p className="text-gray-500">Category: Large animals</p>
-          <p className="text-gray-500">No. of Animals</p>
-        </div>
-
         {/* Two-column Layout */}
         <div className="flex flex-col lg:flex-row justify-between space-y-4 lg:space-y-0 lg:space-x-6">
-          {/* Left Side: category Table */}
+          {/* Left Side: Transaction Summary with Report Header */}
           <div className="w-full lg:w-1/2">
             <div className="bg-white shadow-lg rounded-lg p-6">
-              <table className="w-full table-auto border-collapse">
+              {/* Report Header */}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">Weekly Animal Transaction Report</h1>
+                <p className="text-gray-500">
+                  For the month of:{" "}
+                  <span className="font-bold">
+                    {new Date().toLocaleString("en-US", { month: "long", year: "numeric" })}
+                  </span>
+                </p>
+                <p className="text-gray-500">Number of Livestock in Transactions</p>
+              </div>
+
+              {/* Category Table */}
+              <h2 className="text-lg font-bold text-gray-800 mt-6">Transaction Summary</h2>
+              <table className="w-full table-auto border-collapse mt-4">
                 <thead>
                   <tr className="bg-green-800 text-white">
                     <th className="p-3 border">Category</th>
@@ -87,20 +93,18 @@ const TransactionReports = () => {
             </div>
           </div>
 
-          {/* Right Side: Livestock Prices - Placeholder */}
+          {/* Right Side: Livestock Prices */}
           <div className="w-full lg:w-1/2">
             <div className="bg-white shadow-lg rounded-lg p-6">
               <h2 className="text-lg font-bold text-gray-800">Prevailing Average Prices of Livestock</h2>
-              <p className="text-gray-500 mt-4">Data not available. Please update this table with the correct values when ready.</p>
               <table className="w-full table-auto border-collapse mt-4">
                 <thead>
                   <tr className="bg-green-800 text-white">
                     <th className="p-3">Livestock</th>
-                    <th className="p-3">Average per Kilo</th>
+                    <th className="p-3">Average Price (₱ per Kilo)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Placeholder for actual data */}
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Cattle</td>
                     <td className="p-3 text-gray-700">174.58</td>
