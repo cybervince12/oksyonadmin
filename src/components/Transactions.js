@@ -620,7 +620,7 @@ const cancelAction = () => {
       <th className="p-1 text-xs text-white bg-green-800">Age</th>
       <th className="p-1 text-xs text-white bg-green-800">Gender</th>
       <th className="p-1 text-xs text-white bg-green-800">Weight</th>
-      <th className="p-1 text-xs text-white bg-green-800">Starting Price</th>
+      <th className="p-1 text-xs text-white bg-green-800">Price</th>
       <th className="p-1 text-xs text-white bg-green-800">Auction Start</th>
       <th className="p-1 text-xs text-white bg-green-800">Auction End</th>
       <th className="p-1 text-xs text-white bg-green-800">Status</th>
@@ -630,7 +630,7 @@ const cancelAction = () => {
       {activeTab === 'Pending' && <th className="p-1 text-xs text-white bg-green-800">Actions</th>}
     </tr>
   </thead>
-  <tbody>{renderTransactions()}</tbody>
+  <tbody>{renderTransactions()}</tbody> 
 </table>
 
 
