@@ -83,9 +83,9 @@ const TransactionReports = () => {
                   {reportData.map((item, index) => (
                     <tr key={index} className="border-t">
                       <td className="p-3 text-gray-700">{item.category}</td>
-                      <td className="p-3 text-gray-700">{item.registered}</td>
-                      <td className="p-3 text-gray-700">{item.sold}</td>
-                      <td className="p-3 text-gray-700">{item.unsold}</td>
+                      <td className="p-3 text-gray-700 text-center">{item.registered}</td>
+                      <td className="p-3 text-gray-700 text-center">{item.sold}</td>
+                      <td className="p-3 text-gray-700 text-center">{item.unsold}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -107,27 +107,27 @@ const TransactionReports = () => {
                 <tbody>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Cattle</td>
-                    <td className="p-3 text-gray-700">174.58</td>
+                    <td className="p-3 text-gray-700 text-center">174.58</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Carabao</td>
-                    <td className="p-3 text-gray-700">149.41</td>
+                    <td className="p-3 text-gray-700 text-center">149.41</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Horse</td>
-                    <td className="p-3 text-gray-700">500</td>
+                    <td className="p-3 text-gray-700 text-center">500</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Goat</td>
-                    <td className="p-3 text-gray-700">230.65</td>
+                    <td className="p-3 text-gray-700 text-center">230.65</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Sheep</td>
-                    <td className="p-3 text-gray-700">54</td>
+                    <td className="p-3 text-gray-700 text-center">54</td>
                   </tr>
                   <tr className="border-t">
                     <td className="p-3 text-gray-700">Pig</td>
-                    <td className="p-3 text-gray-700">169.73</td>
+                    <td className="p-3 text-gray-700 text-center">169.73</td>
                   </tr>
                 </tbody>
               </table>
